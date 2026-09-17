@@ -1059,7 +1059,21 @@ function preencherProposta() {
     // Condições de pagamento com base no total arredondado
     const totalProjeto = totalGeralExibido;
 
-    
+    // Opção 1: À vista com 5% de desconto (1+1)
+    const valorComDesconto = totalProjeto * 0.95;
+    const parcelaAVista = valorComDesconto / 2;
+    const condicao1 = `A vista 5% desconto (1+1): ${formatCurrency(parcelaAVista)} + 1 de ${formatCurrency(parcelaAVista)}`;
+
+    // Opção 2: 40% de entrada + 6x
+    const entrada40 = totalProjeto * 0.40;
+    const saldo6x = totalProjeto * 0.60;
+    const parcela6x = saldo6x / 6;
+    const condicao2 = `40% de entrada e saldo em 6x (boleto ou cartão) sem juros: ${formatCurrency(entrada40)} + 6x ${formatCurrency(parcela6x)}`;
+
+    // Opção 3: 12x no cartão com 8% de juros
+    const valorComJuros = totalProjeto * 1.12;
+    const parcela12x = valorComJuros / 12;
+    const condicao3 = `12x de ${formatCurrency(parcela12x)} no cartão de crédito`;
 
     const condicoesContainer = document.getElementById('lista-condicoes');
     if (condicoesContainer) {
@@ -1084,24 +1098,62 @@ function preencherProposta() {
 }
 
 async function gerarPDF() {
+    const botao = document.getElementById('btnSalvarPDF');
     const elementoParaImprimir = document.getElementById('conteudo-proposta');
-    const paginas = elementoParaImprimir.querySelectorAll('section.print-page');
-    const docDefinition = {
-    pageSize: { width: 595.28, height: 841.89 }, // A4 vertical (portrait)
-    pageOrientation: 'portrait',
-    pageMargins: [0, 0, 0, 0],
-    content: []
-    };
-    for (let i = 0; i < paginas.length; i++) {
-    // Aumenta o scale para melhorar a nitidez (ex: 3)
-    const canvas = await html2canvas(paginas[i], { scale: 3 });
-    const imgData = canvas.toDataURL('image/jpeg', 1.0); // qualidade máxima
-    if (i > 0) {
-    docDefinition.content.push({ text: '', pageBreak: 'before' });
+    const paginas = elementoParaImprimir?.querySelectorAll('section.print-page');
+
+    if (typeof window.html2canvas !== 'function' || !window.pdfMake?.createPdf) {
+      alert('Não foi possível carregar as bibliotecas necessárias para gerar o PDF. Atualize a página e tente novamente.');
+      return;
     }
-    docDefinition.content.push({ image: imgData, width: 595.28 }); // largura A4 vertical
+    if (!paginas || paginas.length === 0) {
+      alert('Não há conteúdo de proposta para gerar o PDF.');
+      return;
     }
-    pdfMake.createPdf(docDefinition).download('proposta.pdf');
+
+    const textoOriginal = botao?.textContent;
+    if (botao) {
+      botao.disabled = true;
+      botao.textContent = 'Gerando PDF...';
+    }
+
+    try {
+      await Promise.all(Array.from(elementoParaImprimir.querySelectorAll('img')).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+          img.addEventListener('load', resolve, { once: true });
+          img.addEventListener('error', resolve, { once: true });
+        });
+      }));
+
+      const docDefinition = {
+        pageSize: { width: 595.28, height: 841.89 },
+        pageOrientation: 'portrait',
+        pageMargins: [0, 0, 0, 0],
+        content: []
+      };
+
+      for (let i = 0; i < paginas.length; i++) {
+        const canvas = await window.html2canvas(paginas[i], {
+          scale: Math.min(window.devicePixelRatio || 2, 3),
+          backgroundColor: '#ffffff',
+          useCORS: true,
+          logging: false
+        });
+        if (i > 0) docDefinition.content.push({ text: '', pageBreak: 'before' });
+        docDefinition.content.push({ image: canvas.toDataURL('image/jpeg', 0.95), width: 595.28 });
+      }
+
+      window.pdfMake.createPdf(docDefinition).download('proposta.pdf');
+    } catch (error) {
+      console.error('Falha ao gerar PDF:', error);
+      alert(`Não foi possível gerar o PDF: ${error.message || 'erro desconhecido'}`);
+    } finally {
+      if (botao) {
+        botao.disabled = false;
+        botao.textContent = textoOriginal || 'Salvar PDF';
+      }
+    }
 }
 
 function gerarWord() {
