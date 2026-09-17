@@ -124,7 +124,8 @@
 
 <body data-modulo="proposta">
   <div id="toolbar">
-    <button id="btnSalvarPDF" class="btn">Salvar PDF</button>
+    <button type="button" id="btnSalvarPDF" class="btn" onclick="gerarPDF()">Salvar PDF</button>
+    <button id="btnSalvarWord" class="btn">Salvar Word</button>
   </div>
 
   <div id="conteudo-proposta">
@@ -177,7 +178,7 @@
     <!-- Página 2 -->
     <section class="print-page">
       <div class="payment-conditions">
-        <div class="section-title">Condições de pagamento: A combinar.</div>
+        <div class="section-title">Condições de pagamento:</div>
         <ul id="lista-condicoes"></ul>
       </div>
 
@@ -218,6 +219,13 @@
 
       <div class="additional-info">
         <p><strong>Esta proposta tem validade de 15 dias ou até durar o estoque.</strong></p>
+      </div>
+
+      <div class="responsible-info">
+        <div class="section-title">Responsável pela proposta</div>
+        <div id="vendedor-nome">Nome do responsável</div>
+        <div id="vendedor-cargo">Cargo</div>
+        <div id="vendedor-fone">Telefone</div>
       </div>
 
       <div class="date-location">

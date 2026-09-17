@@ -1348,7 +1348,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       preencherProposta();
       const btnSalvarPDF = document.getElementById('btnSalvarPDF');
       const btnSalvarWord = document.getElementById('btnSalvarWord');
-      if (btnSalvarPDF) btnSalvarPDF.addEventListener('click', gerarPDF);
       if (btnSalvarWord) btnSalvarWord.addEventListener('click', gerarWord);
     }
     else if (moduloAtual === 'accept-invite') {
