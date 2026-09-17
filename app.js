@@ -1089,7 +1089,6 @@ function preencherProposta() {
       document.getElementById('vendedor-nome').textContent = vendedor.nome;
       document.getElementById('vendedor-cargo').textContent = vendedor.cargo;
       document.getElementById('vendedor-fone').textContent = vendedor.fone;
-      document.getElementById('vendedor-email').textContent = vendedor.email;
     }
 
     // Data

@@ -13,9 +13,8 @@
       --text-color: #111;
       --muted: #666;
       --border: #DDD;
-      --brand: #1f2937;
       --accent: #111;
-      --via-blue: #4A90E2;
+      --blue: #1769aa;
     }
     html, body {
       margin: 0;
@@ -67,38 +66,11 @@
       margin: 0 auto 16px;
       overflow: hidden;
     }
-    .logo-via {
-      position: absolute;
-      top: 20mm;
-      right: 20mm;
-      left: auto;
-      max-width: 180px;
-      max-height: 60px;
-      width: auto;
-      height: auto;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      background: transparent;
-      font-weight: normal;
-      font-size: initial;
-      color: initial;
-      letter-spacing: initial;
-    }
-    .logo-via img {
-      max-width: 10000%;
-      max-height: 600px;
-      width: 60%;
-      height: 60%;
-      object-fit: contain;
-      display: block;
-    }
     .header-content { margin-left: 0; margin-top: 50px; }
     h1 { margin: 0 0 8px 0; font-size: 18pt; line-height: 1.2; color: var(--text-color); font-weight: 700; }
     .cliente-info { margin: 0 0 20px 0; font-size: 11pt; }
     .section { margin: 20px 0; }
-    .section-title { font-size: 11pt; font-weight: 700; color: var(--text-color); margin: 0 0 8px 0; }
+    .section-title { font-size: 11pt; font-weight: 700; color: var(--blue); margin: 0 0 8px 0; }
     .objeto { margin: 20px 0; font-size: 11pt; }
     .item-list { list-style: none; padding: 0; margin: 8px 0; }
     .item-list li { display: flex; align-items: baseline; margin: 4px 0; font-size: 11pt; }
@@ -118,10 +90,7 @@
     .payment-conditions ul { list-style: disc; padding-left: 20px; margin: 8px 0; }
     .payment-conditions li { margin: 4px 0; font-size: 11pt; }
     .additional-info { margin: 20px 0; font-size: 11pt; }
-    .company-info { display: flex; justify-content: space-between; margin-top: 30px; }
-    .company-details { flex: 1; }
-    .contact-info { flex: 1; text-align: left; margin-left: 500px; margin-top: 58px; }
-    .contact-info a { color: var(--via-blue); text-decoration: none; }
+    .responsible-info { margin-top: 30px; }
     .date-location { margin-top: 20px; font-size: 11pt; }
     .technical-details { font-size: 9pt; color: var(--muted); margin-left: 20px; font-style: italic; }
     .full-page-img { width: 100%; height: 100%; object-fit: cover; display: block; position: absolute; top: 0; left: 0; z-index: 1; }
@@ -134,7 +103,6 @@
     @media screen and (max-width: 1200px) {
       section.print-page { width: 100%; min-height: auto; padding: 16px; }
       #conteudo-proposta { margin: 0; }
-      .logo-via { position: relative; top: 0; left: 0; margin-bottom: 20px; }
       .header-content { margin-top: 0; }
     }
     @media print {
@@ -163,10 +131,6 @@
   <div id="conteudo-proposta">
     <!-- Página 1 -->
     <section class="print-page no-break-print">
-      <div class="logo-via">
-        <img src="img/logo1.PNG" alt="Logo VIA" />
-      </div>
-
       <div class="header-content">
         <h1>Proposta Comercial</h1>
         <div class="cliente-info">
@@ -213,10 +177,6 @@
 
     <!-- Página 2 -->
     <section class="print-page">
-      <div class="logo-via">
-        <img src="img/logo1.PNG" alt="Logo VIA" />
-      </div>
-
       <div class="payment-conditions">
         <div class="section-title">Condições de pagamento:</div>
         <ul id="lista-condicoes"></ul>
@@ -254,31 +214,18 @@
 
       <div class="additional-info">
         <div class="section-title">Itens complementares para instalação: (Materiais serralheria/ fixação):</div>
-        <p>Visando a praticidade e a agilidade para nossos clientes, a Via Painéis possibilita a entrega do <strong>projeto 100% completo</strong> por possuir serralheria própria. Caso o cliente tenha empresa ou profissional de sua preferência, a Via Painéis orientará a maneira como devem ser executadas as estruturas de fixação.</p>
+        <p>Visando a praticidade e a agilidade para nossos clientes, o projeto pode ser entregue completo, incluindo estrutura, instalação e configuração. Caso o cliente tenha empresa ou profissional de sua preferência, serão fornecidas as orientações necessárias para execução da estrutura de fixação.</p>
       </div>
 
       <div class="additional-info">
         <p><strong>Esta proposta tem validade de 15 dias ou até durar o estoque.</strong></p>
       </div>
 
-      <div class="company-info">
-        <div class="company-details">
-          <div class="section-title">Via Painéis</div>
-          <p>
-            CNPJ: 17.312.415/0001-01<br>
-            Inscrição Estadual: 256.916.454<br>
-            Avenida Colombo Machado Sales, 422- Jardim Dourado<br>
-            Porto Belo - SC - CEP: 88210-000
-          </p>
-        </div>
-        <div class="contact-info">
-          <div id="vendedor-nome">Nome vendedor completo</div>
-          <div id="vendedor-cargo">Cargo - Via Painéis</div>
-          <div id="vendedor-fone">(xx) 9999-9999</div>
-          <div>
-            <a href="mailto:viapaineis@viapaineis.com.br" id="vendedor-email">viapaineis@viapaineis.com.br</a>
-          </div>
-        </div>
+      <div class="responsible-info">
+        <div class="section-title">Responsável pela proposta</div>
+        <div id="vendedor-nome">Nome do responsável</div>
+        <div id="vendedor-cargo">Cargo</div>
+        <div id="vendedor-fone">Telefone</div>
       </div>
 
       <div class="date-location">
