@@ -16,11 +16,319 @@ const vendedores = [
     { id: 'patricia', nome: 'Patricia Gomez', cargo: 'Consultora comercial - Via Painéis', fone: '(47) 93618-1267', email: 'vendas5@viapaineis.com.br' },
     { id: 'William', nome: 'William Melo', cargo: 'Consultor Comercial', fone: '(47) 99722-1472', email: 'vendas1@viapaineis.com.br' },
     { id: 'Patric', nome: 'Patric Marques', cargo: 'Consultor Comercial', fone: '(47) 99711-2059', email: 'vendas4@viapaineis.com.br' },
+   { id: 'Frederico Carvalho', nome: 'Frederico Carvalho', cargo: 'Diretor', fone: '(47) 9995-3208', email: 'adm@viapaineis.com.br' },
     { id: 'Paulo', nome: 'Paulo Marques', cargo: 'Gerente Comercial', fone: '(47) 99752-0289', email: 'paulo.marques@viapaineis.com.br' }
 ];
 
 let painelSelecionado = null;
 let ultimoResultado = null;
+
+const MODULOS_EM_SUBPASTA = ['fachada', 'totem', 'vitrine', 'parede'];
+
+function obterParametrosAuthUrl() {
+    const queryParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    return {
+        code: queryParams.get('code') || hashParams.get('code'),
+        type: queryParams.get('type') || hashParams.get('type'),
+        accessToken: hashParams.get('access_token'),
+        refreshToken: hashParams.get('refresh_token'),
+        error: queryParams.get('error') || hashParams.get('error'),
+        errorDescription: queryParams.get('error_description') || hashParams.get('error_description'),
+    };
+}
+
+function urlTemFluxoDeSenha() {
+    const params = obterParametrosAuthUrl();
+    return params.type === 'recovery' || params.type === 'invite' || Boolean(params.accessToken && params.refreshToken);
+}
+
+function redirecionarFluxoDeSenhaParaPaginaCorreta(moduloAtual) {
+    if (moduloAtual === 'accept-invite' || !urlTemFluxoDeSenha()) return false;
+
+    const destino = new URL('/accept-invite.html', window.location.origin);
+    destino.search = window.location.search;
+    destino.hash = window.location.hash;
+    window.location.replace(destino.toString());
+    return true;
+}
+
+function getSupabaseClient() {
+    if (!window.supabaseClient) {
+        throw new Error(window.supabaseSetupError || 'Supabase não configurado.');
+    }
+    return window.supabaseClient;
+}
+
+async function obterSessaoAtual() {
+    const supabase = getSupabaseClient();
+    const { data, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    if (data.session || !urlTemFluxoDeSenha()) return data.session || null;
+
+    return new Promise((resolve) => {
+        let subscription = null;
+        const finish = (session) => {
+            if (subscription) subscription.unsubscribe();
+            resolve(session || null);
+        };
+
+        const timeoutId = setTimeout(async () => {
+            const { data: refreshedData } = await supabase.auth.getSession();
+            finish(refreshedData.session || null);
+        }, 1500);
+
+        const authListener = supabase.auth.onAuthStateChange((_event, session) => {
+            clearTimeout(timeoutId);
+            finish(session);
+        });
+        subscription = authListener?.data?.subscription || null;
+    });
+}
+
+function limparAuthLegado() {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userName');
+}
+
+function obterNomeUsuario(session) {
+    const user = session?.user;
+    return user?.user_metadata?.name || user?.user_metadata?.full_name || user?.email || '';
+}
+
+function caminhoParaLogin(moduloAtual) {
+    return MODULOS_EM_SUBPASTA.includes(moduloAtual) ? '../login.html' : 'login.html';
+}
+
+function redirecionarParaLogin(moduloAtual) {
+    const loginPath = caminhoParaLogin(moduloAtual);
+    const next = encodeURIComponent(window.location.pathname + window.location.search);
+    window.location.href = `${loginPath}?next=${next}`;
+}
+
+function getSafeNextUrl() {
+    const next = new URLSearchParams(window.location.search).get('next');
+    if (!next || /^https?:\/\//i.test(next) || next.startsWith('//')) return 'index.html';
+    return next;
+}
+
+function normalizarDadosProposta(valor) {
+    if (typeof valor !== 'string') return valor;
+    try {
+        return JSON.parse(valor);
+    } catch (_) {
+        return valor;
+    }
+}
+
+function gerenciarCabecalhoUsuario(session) {
+    const header = document.getElementById('user-header');
+    const userEmailSpan = document.getElementById('user-email');
+    const logoutButton = document.getElementById('logout-button');
+
+    if (!header || !userEmailSpan || !logoutButton) {
+        return;
+    }
+
+    const userName = obterNomeUsuario(session);
+
+    if (session && userName) {
+        userEmailSpan.textContent = `Usuário: ${userName}`;
+        header.classList.remove('hidden');
+
+        logoutButton.addEventListener('click', async () => {
+            if (confirm('Tem certeza que deseja sair?')) {
+                try {
+                    await getSupabaseClient().auth.signOut();
+                } catch (_) {}
+                limparAuthLegado();
+                alert('Você saiu da sua conta.');
+
+                const moduloAtual = document.body.dataset.modulo;
+                window.location.href = caminhoParaLogin(moduloAtual);
+            }
+        }, { once: true });
+    } else {
+        header.classList.add('hidden');
+    }
+}
+
+async function obterPerfilAtual(session) {
+    if (!session) return null;
+
+    const supabase = getSupabaseClient();
+    const { data, error } = await supabase
+    .from('user_profiles')
+    .select('id, email, full_name, role')
+    .eq('id', session.user.id)
+    .single();
+
+    if (error) return null;
+    return data;
+}
+
+function mostrarControlesAdmin(perfil) {
+    const adminLink = document.getElementById('admin-link');
+    if (!adminLink) return;
+    adminLink.classList.toggle('hidden', perfil?.role !== 'superadmin');
+}
+
+async function carregarPainelAdmin(session, perfil) {
+    if (perfil?.role !== 'superadmin') {
+        alert('Acesso restrito ao superadmin.');
+        window.location.href = 'index.html';
+        return;
+    }
+
+    await carregarUsuariosAdmin();
+
+    const form = document.getElementById('admin-create-user-form');
+    if (!form) return;
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const status = document.getElementById('admin-create-user-status');
+        const formData = new FormData(form);
+        const payload = {
+            full_name: String(formData.get('full_name') || '').trim(),
+            email: String(formData.get('email') || '').trim().toLowerCase(),
+            role: formData.get('role') === 'superadmin' ? 'superadmin' : 'user',
+            redirect_to: `${window.location.origin}/accept-invite.html`,
+        };
+
+        if (status) {
+            status.textContent = 'Enviando convite...';
+            status.className = 'text-sm mt-4 text-gray-600';
+        }
+
+        try {
+            const supabase = getSupabaseClient();
+            const { data, error } = await supabase.functions.invoke('admin-create-user', {
+                body: payload,
+            });
+
+            if (error) throw error;
+            if (data?.error) throw new Error(data.error);
+
+            form.reset();
+            if (status) {
+                status.textContent = data?.link_type === 'recovery'
+                    ? 'Usuário já existia. Link para definir nova senha enviado.'
+                    : 'Convite enviado e usuário registrado.';
+                status.className = 'text-sm mt-4 text-green-700';
+            }
+            await carregarUsuariosAdmin();
+        } catch (error) {
+            if (status) {
+                status.textContent = error.message || 'Falha ao criar usuário.';
+                status.className = 'text-sm mt-4 text-red-600';
+            }
+        }
+    });
+}
+
+async function carregarUsuariosAdmin() {
+    const container = document.getElementById('admin-users-list');
+    if (!container) return;
+
+    try {
+        const supabase = getSupabaseClient();
+        const { data: usuarios, error } = await supabase
+        .from('user_profiles')
+        .select('email, full_name, role, created_at')
+        .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (!usuarios || usuarios.length === 0) {
+            container.innerHTML = '<p>Nenhum usuário cadastrado.</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        usuarios.forEach(usuario => {
+            const card = document.createElement('div');
+            card.className = 'bg-gray-50 p-3 rounded border border-gray-200';
+
+            const nome = document.createElement('p');
+            nome.className = 'font-semibold';
+            nome.textContent = usuario.full_name || usuario.email;
+
+            const detalhes = document.createElement('p');
+            detalhes.className = 'text-sm text-gray-600';
+            detalhes.textContent = `${usuario.email} • ${usuario.role === 'superadmin' ? 'Superadmin' : 'Usuário'}`;
+
+            card.appendChild(nome);
+            card.appendChild(detalhes);
+            container.appendChild(card);
+        });
+    } catch (error) {
+        container.innerHTML = `<p class="text-red-500">${error.message}</p>`;
+    }
+}
+
+async function configurarAceiteConvite() {
+    const form = document.getElementById('accept-invite-form');
+    const message = document.getElementById('accept-invite-message');
+    if (!form || !message) return;
+
+    const params = obterParametrosAuthUrl();
+    if (params.error) {
+        sessionStorage.removeItem('passwordRecoveryPending');
+        message.textContent = params.errorDescription || 'Convite inválido ou expirado. Peça para o administrador enviar um novo convite.';
+        message.className = 'text-sm text-red-600 text-center mb-6';
+        return;
+    }
+
+    if (sessionStorage.getItem('passwordRecoveryPending') !== '1') {
+        message.textContent = 'Abra o link mais recente recebido por email para definir sua senha.';
+        message.className = 'text-sm text-red-600 text-center mb-6';
+        return;
+    }
+
+    const supabase = getSupabaseClient();
+    const { data, error } = await supabase.auth.getSession();
+
+    if (error || !data.session) {
+        sessionStorage.removeItem('passwordRecoveryPending');
+        message.textContent = 'Convite inválido ou expirado. Peça para o administrador enviar um novo convite.';
+        message.className = 'text-sm text-red-600 text-center mb-6';
+        return;
+    }
+
+    message.textContent = `Convite aceito para ${data.session.user.email}. Defina sua senha para concluir o acesso.`;
+    message.className = 'text-sm text-gray-600 text-center mb-6';
+    form.classList.remove('hidden');
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const password = form.elements.namedItem('password').value;
+        const passwordConfirmation = form.elements.namedItem('password_confirmation').value;
+
+        if (password !== passwordConfirmation) {
+            message.textContent = 'As senhas não conferem.';
+            message.className = 'text-sm text-red-600 text-center mb-6';
+            return;
+        }
+
+        try {
+            message.textContent = 'Salvando senha...';
+            message.className = 'text-sm text-gray-600 text-center mb-6';
+            const { error: updateError } = await supabase.auth.updateUser({ password });
+            if (updateError) throw updateError;
+
+            sessionStorage.removeItem('passwordRecoveryPending');
+            await supabase.auth.signOut();
+            message.textContent = 'Senha definida com sucesso. Entre novamente com sua nova senha.';
+            message.className = 'text-sm text-green-700 text-center mb-6';
+            window.location.href = 'login.html';
+        } catch (updateError) {
+            message.textContent = updateError.message || 'Não foi possível definir a senha.';
+            message.className = 'text-sm text-red-600 text-center mb-6';
+        }
+    });
+}
 
 function formatCurrency(value) {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -391,6 +699,11 @@ custoControladora *= multiplicaControladora;
 // Calcular estrutura: quantidadeDeEstruturas × multiplicaEstrutura × valorEstruturaUnit
 custoEstrutura = quantidadeDeEstruturas * multiplicaEstrutura * valorEstruturaUnit;
 
+// Condição para zerar estrutura no módulo 'parede'
+if (modulo === 'parede') {
+  custoEstrutura = 0;
+}
+
 const total = custoPainel + custoControladora + custoEstrutura + custoEletrica + custoInstalacao + custoPilar + custoSapata + custoACM + custoBorda;
 
 ultimoResultado = { 
@@ -429,12 +742,39 @@ resultadoDiv.classList.remove('hidden');
 document.getElementById('container-gerar-proposta')?.classList.remove('hidden');
 }
 
+// =============================================================
+// BLOCO DE INTEGRAÇÃO COM LOCAÇÃO
+// =============================================================
+try {
+  const checkboxLocacao = document.getElementById('oferecerLocacao');
+  if (checkboxLocacao) {
+    checkboxLocacao.addEventListener('change', () => {
+      const ativo = checkboxLocacao.checked;
+      alternarBlocoLocacao(ativo);
+
+      if (ativo) {
+        // Extrai o valor total do orçamento já exibido
+        const textoTotal = document.querySelector('#resultado .text-indigo-700')?.innerText || '';
+        const valorNumerico = parseFloat(textoTotal.replace(/[^\d,]/g, '').replace(',', '.'));
+
+        if (!isNaN(valorNumerico) && valorNumerico > 0) {
+          const parcelas = calcularLocacao(valorNumerico);
+          preencherTabelaLocacao(parcelas);
+        } else {
+          console.warn('Valor total do orçamento não encontrado ou inválido.');
+        }
+      }
+    });
+  }
+} catch (e) {
+  console.error('Erro ao inicializar módulo de locação:', e);
+}
+// =============================================================
+
 function hideResultOnInputChange() {
     document.getElementById('resultado')?.classList.add('hidden');
     document.getElementById('container-gerar-proposta')?.classList.add('hidden');
 }
-
-
 
 function atualizarCamposPilar() {
     const select = document.getElementById('tipoPilar');
@@ -514,6 +854,11 @@ function preencherProposta() {
     dadosAjustados.total = totalGeralExibido;
     dadosAjustados.diferencaArredondamento = diferencaArredondamento;
 
+  if (typeof calcularLocacao === 'function') {
+  const parcelasLocacao = calcularLocacao(ultimoResultado.total);
+  ultimoResultado.locacao = parcelasLocacao;
+}
+
     // Salva a versão ajustada no localStorage para que PDF/Word usem os mesmos números exibidos
     localStorage.setItem('dadosProposta', JSON.stringify(dadosAjustados));
 
@@ -540,7 +885,6 @@ function preencherProposta() {
       }
     }
 
-    // --- NOVO: calcular "Valor por metro quadrado" mostrado conforme regras solicitadas ---
     // --- NOVO: calcular "Valor por metro quadrado" mostrado conforme regras solicitadas ---
     const valorUnitarioNum = Number(dados.valorUnitario) || 0;
     const valorPorM2Num = Number(dados.valorPorMetroQuadrado) || 0;
@@ -697,7 +1041,6 @@ function preencherProposta() {
     document.getElementById('data-emissao').textContent = `Porto Belo, ${dataFormatada}`;
 }
 
-
 async function gerarPDF() {
     const elementoParaImprimir = document.getElementById('conteudo-proposta');
     const paginas = elementoParaImprimir.querySelectorAll('section.print-page');
@@ -725,7 +1068,6 @@ function gerarWord() {
     return;
     }
     
-
     const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Table, TableCell, TableRow, WidthType, BorderStyle } = window.docx;
 
     const dados = JSON.parse(localStorage.getItem('dadosProposta'));
@@ -820,193 +1162,228 @@ function gerarWord() {
 
 async function carregarHistorico() {
     try {
-    const token = localStorage.getItem('authToken');
-    const response = await fetch('http://localhost:3000/propostas', {
-    headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (!response.ok) throw new Error('Falha ao carregar o histórico.');
-    const propostas = await response.json();
+    const session = await obterSessaoAtual();
+    if (!session) {
+    redirecionarParaLogin('historico');
+    return;
+    }
+
+    const supabase = getSupabaseClient();
+    const { data: propostas, error } = await supabase
+    .from('proposals')
+    .select('*')
+    .eq('user_id', session.user.id)
+    .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
     const container = document.getElementById('lista-historico');
     if (!container) return;
-    if (propostas.length === 0) {
+    if (!propostas || propostas.length === 0) {
     container.innerHTML = '<p>Nenhuma proposta salva ainda.</p>';
     return;
     }
-    container.innerHTML = propostas.map(p => `
-    <div class="bg-white p-4 rounded shadow cursor-pointer hover:bg-gray-100" data-proposta='${JSON.stringify(p.data)}'>
-    <p class="font-semibold">${p.title}</p>
-    <p class="text-xs text-gray-500">Criada em: ${new Date(p.createdAt).toLocaleDateString('pt-BR')}</p>
-    </div>
-    `).join('');
 
-    container.querySelectorAll('[data-proposta]').forEach(item => {
-    item.addEventListener('click', (e) => {
-    const dadosProposta = JSON.parse(e.currentTarget.dataset.proposta);
+    container.innerHTML = '';
+    propostas.forEach(p => {
+    const dadosProposta = normalizarDadosProposta(p.data);
+    if (!dadosProposta || !dadosProposta.modulo) return;
+    const card = document.createElement('div');
+    card.className = 'bg-white p-4 rounded shadow cursor-pointer hover:bg-gray-100';
+
+    const titulo = document.createElement('p');
+    titulo.className = 'font-semibold';
+    titulo.textContent = p.title || 'Proposta sem título';
+
+    const dataCriacao = document.createElement('p');
+    dataCriacao.className = 'text-xs text-gray-500';
+    const createdAt = p.created_at || p.createdAt;
+    dataCriacao.textContent = createdAt
+    ? `Criada em: ${new Date(createdAt).toLocaleDateString('pt-BR')}`
+    : 'Criada em: data indisponível';
+
+    card.appendChild(titulo);
+    card.appendChild(dataCriacao);
+    card.addEventListener('click', () => {
     localStorage.setItem('propostaParaCarregar', JSON.stringify(dadosProposta));
     window.location.href = `./${dadosProposta.modulo}/${dadosProposta.modulo}.html`;
     });
+    container.appendChild(card);
     });
     } catch (error) {
     if(document.getElementById('lista-historico')) document.getElementById('lista-historico').innerHTML = `<p class="text-red-500">${error.message}</p>`;
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const body = document.body;
-  const moduloAtual = body.dataset.modulo;
-  if (!moduloAtual) return;
+document.addEventListener('DOMContentLoaded', async () => {
+    if (window.supabaseAuthRedirecting) return;
+    const body = document.body;
+    const moduloAtual = body.dataset.modulo;
+    if (!moduloAtual) return;
 
-  if (moduloAtual === 'proposta') {
-    preencherProposta();
-    const btnSalvarPDF = document.getElementById('btnSalvarPDF');
-    const btnSalvarWord = document.getElementById('btnSalvarWord');
-    if (btnSalvarPDF) btnSalvarPDF.addEventListener('click', gerarPDF);
-    if (btnSalvarWord) btnSalvarWord.addEventListener('click', gerarWord);
-  } 
-  else if (moduloAtual === 'register') {
-    const form = document.getElementById('register-form');
-    if (form) {
-    form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const name = form.name.value;
-    const email = form.email.value;
-    const password = form.password.value;
+    if (redirecionarFluxoDeSenhaParaPaginaCorreta(moduloAtual)) {
+      return;
+    }
+
+    const paginasPublicas = ['login', 'accept-invite'];
+    const paginaPublica = paginasPublicas.includes(moduloAtual);
+    let session = null;
+    let perfilAtual = null;
+
     try {
-    const response = await fetch('http://localhost:3000/register', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, email, password })
-    });
-    const message = await response.text();
-    alert(message);
-    if (response.ok) form.reset();
+      session = await obterSessaoAtual();
+      limparAuthLegado();
     } catch (error) {
-    alert('Erro ao conectar com o servidor.');
-    }
-    });
-    }
-  }
-  else if (moduloAtual === 'login') {
-    const form = document.getElementById('login-form');
-    if (form) {
-    form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const email = form.email.value;
-    const password = form.password.value;
-    try {
-    const response = await fetch('http://localhost:3000/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password })
-    });
-    if (response.ok) {
-    const data = await response.json();
-    localStorage.setItem('authToken', data.token);
-    alert('Login bem-sucedido!');
-    window.location.href = 'index.html';
-    } else {
-    const message = await response.text();
-    alert(`Falha no login: ${message}`);
-    }
-    } catch (error) {
-    alert('Erro ao conectar com o servidor.');
-    }
-    });
-    }
-  }
-  else if (moduloAtual === 'historico') {
-    carregarHistorico();
-  }
-  else { // Lógica das páginas de cálculo
-    carregarModelos();
-    carregarVendedores();
-    const dadosParaCarregar = JSON.parse(localStorage.getItem('propostaParaCarregar'));
-    if (dadosParaCarregar && dadosParaCarregar.modulo === moduloAtual) {
-    preencherFormulario(dadosParaCarregar);
-    localStorage.removeItem('propostaParaCarregar');
-    document.getElementById('modeloPainel')?.dispatchEvent(new Event('change', { bubbles: true }));
-
-// silencia alertas durante o cálculo inicial
-window.__carregandoHistorico = true;
-setTimeout(() => {
-  calcularOrcamento(moduloAtual);
-  window.__carregandoHistorico = false;
-}, 0);
-    setTimeout(() => {
-    calcularOrcamento(moduloAtual);
-    }, 200);
-    }
-    const form = document.getElementById('orcamento-form');
-    const selectModelo = document.getElementById('modeloPainel');
-    if (selectModelo) selectModelo.addEventListener('change', atualizarPainelSelecionado);
-    if (moduloAtual === 'totem') {
-    const radiosEntrega = document.querySelectorAll('input[name="tipoEntrega"]');
-    radiosEntrega.forEach(radio => radio.addEventListener('change', toggleInstalacaoFields));
-    toggleInstalacaoFields(); 
-    }
-    if (moduloAtual === 'pilar') {
-    const tipoPilarSelect = document.getElementById('tipoPilar');
-    if (tipoPilarSelect) {
-    tipoPilarSelect.addEventListener('change', atualizarCamposPilar);
-    atualizarCamposPilar();
-    }
+      if (!paginaPublica) {
+        alert(error.message);
+        redirecionarParaLogin(moduloAtual);
+        return;
+      }
     }
 
-    // Show/hide borda options (if present)
-    const incluirBorda = document.getElementById('incluirBorda');
-    const bordaOptions = document.getElementById('bordaOptions');
-    if (incluirBorda && bordaOptions) {
-      incluirBorda.addEventListener('change', () => {
-      bordaOptions.style.display = incluirBorda.checked ? 'block' : 'none';
+    gerenciarCabecalhoUsuario(session);
+    perfilAtual = await obterPerfilAtual(session);
+    mostrarControlesAdmin(perfilAtual);
+
+    if (!paginaPublica && !session) {
+      redirecionarParaLogin(moduloAtual);
+      return;
+    }
+
+    if (moduloAtual === 'proposta') {
+      preencherProposta();
+      const btnSalvarPDF = document.getElementById('btnSalvarPDF');
+      const btnSalvarWord = document.getElementById('btnSalvarWord');
+      if (btnSalvarPDF) btnSalvarPDF.addEventListener('click', gerarPDF);
+      if (btnSalvarWord) btnSalvarWord.addEventListener('click', gerarWord);
+    }
+    else if (moduloAtual === 'accept-invite') {
+      await configurarAceiteConvite();
+    }
+    else if (moduloAtual === 'register') {
+      window.location.replace('login.html');
+    }
+    else if (moduloAtual === 'login') {
+      if (session) {
+        window.location.href = getSafeNextUrl();
+        return;
+      }
+      const form = document.getElementById('login-form');
+      if (form) {
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const email = form.email.value.trim();
+        const password = form.password.value;
+        try {
+          const supabase = getSupabaseClient();
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+
+          localStorage.setItem('userEmail', data.user.email || email);
+          localStorage.setItem('userName', obterNomeUsuario(data.session));
+
+          alert('Login bem-sucedido!');
+          window.location.href = getSafeNextUrl();
+        } catch (error) {
+          alert(error.message || 'Falha no login.');
+        }
       });
-      // sync initial state
-      bordaOptions.style.display = incluirBorda.checked ? 'block' : 'none';
+      }
     }
+    else if (moduloAtual === 'historico') {
+      carregarHistorico();
+    }
+    else if (moduloAtual === 'admin') {
+      await carregarPainelAdmin(session, perfilAtual);
+    }
+    else {
+      carregarModelos();
+      carregarVendedores();
+      const dadosParaCarregar = JSON.parse(localStorage.getItem('propostaParaCarregar'));
+      if (dadosParaCarregar && dadosParaCarregar.modulo === moduloAtual) {
+      preencherFormulario(dadosParaCarregar);
+      localStorage.removeItem('propostaParaCarregar');
+      document.getElementById('modeloPainel')?.dispatchEvent(new Event('change', { bubbles: true }));
 
-    if (form) {
-    form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    calcularOrcamento(moduloAtual);
-    });
-    const formInputs = form.querySelectorAll('input, select');
-    formInputs.forEach(input => input.addEventListener('change', hideResultOnInputChange));
-    const btnGerarProposta = document.getElementById('btnGerarProposta');
-    if (btnGerarProposta) {
-    btnGerarProposta.addEventListener('click', async () => {
-    if (!ultimoResultado) {
-    alert("Calcule um orçamento antes de gerar a proposta.");
-    return;
-    }
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-    alert("Sessão expirada. Por favor, faça login novamente.");
-    window.location.href = 'login.html';
-    return;
-    }
-    const vendedor = vendedores.find(v => v.id === ultimoResultado.vendedorId);
-const clienteNome = ultimoResultado?.inputs?.clienteNome || '-';
-const vendedorNome = vendedor ? vendedor.nome : 'Geral';
-const tituloProposta = `${vendedorNome} - ${clienteNome}`;
+      window.__carregandoHistorico = true;
+      setTimeout(() => {
+        calcularOrcamento(moduloAtual);
+        window.__carregandoHistorico = false;
+      }, 0);
+      setTimeout(() => {
+          calcularOrcamento(moduloAtual);
+      }, 200);
+      }
+      const form = document.getElementById('orcamento-form');
+      const selectModelo = document.getElementById('modeloPainel');
+      if (selectModelo) selectModelo.addEventListener('change', atualizarPainelSelecionado);
+      if (moduloAtual === 'totem') {
+      const radiosEntrega = document.querySelectorAll('input[name="tipoEntrega"]');
+      radiosEntrega.forEach(radio => radio.addEventListener('change', toggleInstalacaoFields));
+      toggleInstalacaoFields();
+      }
+      if (moduloAtual === 'pilar') {
+      const tipoPilarSelect = document.getElementById('tipoPilar');
+      if (tipoPilarSelect) {
+      tipoPilarSelect.addEventListener('change', atualizarCamposPilar);
+      atualizarCamposPilar();
+      }
+      }
 
-    try {
-    const response = await fetch('http://localhost:3000/propostas', {
-    method: 'POST',
-    headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify({ title: tituloProposta, data: ultimoResultado })
-    });
-    if (!response.ok) throw new Error('Falha ao salvar a proposta.');
-    
-    // Salva os dados atuais (não ajustados) para impressão em outra aba — o preencherProposta da página proposta.html fará o ajuste de arredondamento para exibição
-    localStorage.setItem('dadosProposta', JSON.stringify(ultimoResultado));
-    window.open('../proposta.html', '_blank');
-    } catch (error) {
-    alert(error.message);
+      const incluirBorda = document.getElementById('incluirBorda');
+      const bordaOptions = document.getElementById('bordaOptions');
+      if (incluirBorda && bordaOptions) {
+        incluirBorda.addEventListener('change', () => {
+        bordaOptions.style.display = incluirBorda.checked ? 'block' : 'none';
+        });
+        bordaOptions.style.display = incluirBorda.checked ? 'block' : 'none';
+      }
+
+      if (form) {
+      form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      calcularOrcamento(moduloAtual);
+      });
+      const formInputs = form.querySelectorAll('input, select');
+      formInputs.forEach(input => input.addEventListener('change', hideResultOnInputChange));
+      const btnGerarProposta = document.getElementById('btnGerarProposta');
+      if (btnGerarProposta) {
+      btnGerarProposta.addEventListener('click', async () => {
+      if (!ultimoResultado) {
+      alert("Calcule um orçamento antes de gerar a proposta.");
+      return;
+      }
+
+      try {
+      const activeSession = await obterSessaoAtual();
+      if (!activeSession) {
+      alert("Sessão expirada. Por favor, faça login novamente.");
+      redirecionarParaLogin(moduloAtual);
+      return;
+      }
+
+      const vendedor = vendedores.find(v => v.id === ultimoResultado.vendedorId);
+      const clienteNome = ultimoResultado?.inputs?.clienteNome || '-';
+      const vendedorNome = vendedor ? vendedor.nome : 'Geral';
+      const tituloProposta = `${vendedorNome} - ${clienteNome}`;
+
+      const supabase = getSupabaseClient();
+      const { error } = await supabase
+      .from('proposals')
+      .insert([{
+        user_id: activeSession.user.id,
+        title: tituloProposta,
+        data: ultimoResultado
+      }]);
+      if (error) throw error;
+
+      localStorage.setItem('dadosProposta', JSON.stringify(ultimoResultado));
+      window.location.href = MODULOS_EM_SUBPASTA.includes(moduloAtual) ? '../proposta.html' : 'proposta.html';
+      } catch (error) {
+      alert(error.message || 'Falha ao salvar a proposta.');
+      }
+      });
+      }
+      }
     }
-    });
-    }
-    }
-  }
 });

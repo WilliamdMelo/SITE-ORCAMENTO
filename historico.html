@@ -6,9 +6,18 @@
   <title>Histórico de Propostas - Via Painéis</title>
   <link rel="stylesheet" href="style.css" />
   
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabaseClient.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body class="p-6 bg-gray-50" data-modulo="historico">
+  <header id="user-header" class="hidden">
+    <div class="container">
+        <span id="user-email"></span>
+        <button id="logout-button">Sair</button>
+    </div>
+  </header>
+
   <div class="max-w-4xl mx-auto">
     <a href="index.html" class="text-blue-600 underline mb-4 inline-block">← Voltar</a>
     <h1 class="text-2xl font-bold text-indigo-700 mb-6">Histórico de Propostas Salvas</h1>

@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Proposta Comercial</title>
 
-
   <style>
-    /* Layout de página A4 paisagem para visualização e impressão */
     :root {
       --page-width: 297mm;
       --page-height: 210mm;
@@ -19,7 +17,6 @@
       --accent: #111;
       --via-blue: #4A90E2;
     }
-
     html, body {
       margin: 0;
       padding: 0;
@@ -29,7 +26,6 @@
       font-size: 11pt;
       line-height: 1.4;
     }
-
     #toolbar {
       position: sticky;
       top: 0;
@@ -43,7 +39,6 @@
       backdrop-filter: blur(6px);
       border-bottom: 1px solid var(--border);
     }
-
     .btn {
       appearance: none;
       border: 1px solid #cfd4dc;
@@ -55,13 +50,11 @@
       font-weight: 600;
     }
     .btn:hover { background: #f7f7f7; }
-
     #conteudo-proposta {
       display: block;
       max-width: var(--page-width);
       margin: 16px auto 48px;
     }
-
     section.print-page {
       width: var(--page-width);
       min-height: var(--page-height);
@@ -74,8 +67,6 @@
       margin: 0 auto 16px;
       overflow: hidden;
     }
-
-    /* Logo VIA */
     .logo-via {
       position: absolute;
       top: 20mm;
@@ -103,275 +94,66 @@
       object-fit: contain;
       display: block;
     }
-
-    /* Cabeçalho */
-    .header-content {
-      margin-left: 0;
-      margin-top: 50px;
-    }
-
-    h1 {
-      margin: 0 0 8px 0;
-      font-size: 18pt;
-      line-height: 1.2;
-      color: var(--text-color);
-      font-weight: 700;
-    }
-
-    .cliente-info {
-      margin: 0 0 20px 0;
-      font-size: 11pt;
-    }
-
-    /* Seções principais */
-    .section {
-      margin: 20px 0;
-    }
-
-    .section-title {
-      font-size: 11pt;
-      font-weight: 700;
-      color: var(--text-color);
-      margin: 0 0 8px 0;
-    }
-
-    /* Objeto */
-    .objeto {
-      margin: 20px 0;
-      font-size: 11pt;
-    }
-
-    /* Itens com checkmark */
-    .item-list {
-      list-style: none;
-      padding: 0;
-      margin: 8px 0;
-    }
-
-    .item-list li {
-      display: flex;
-      align-items: baseline;
-      margin: 4px 0;
-      font-size: 11pt;
-    }
-
-    .item-list li::before {
-      content: "✓";
-      margin-right: 8px;
-      font-weight: bold;
-      flex-shrink: 0;
-    }
-
-    .item-content {
-      flex: 1;
-      display: flex;
-      align-items: baseline;
-      gap: 8px;
-    }
-
-    .item-description {
-      flex: 0 1 auto;
-    }
-
-    .item-dots {
-      flex: 1 1 auto;
-      border-bottom: 1px dotted #666;
-      height: 0;
-      transform: translateY(-2px);
-    }
-
-    .price {
-  margin-left: auto;
-  font-weight: 700;
-  white-space: nowrap;
-  text-align: right;
-}
-
-    /* Linhas pontilhadas para valores */
-    .dotted-line {
-      display: flex;
-      align-items: baseline;
-      margin: 8px 0;
-      font-size: 11pt;
-    }
-
-    .dotted-line .label {
-      flex: 0 0 auto;
-      font-weight: 700;
-    }
-
-    .dotted-line .dots {
-      flex: 1;
-      border-bottom: 1px dotted #666;
-      margin: 0 8px;
-      height: 0;
-      transform: translateY(-2px);
-    }
-
-    .line-item {
-  display: flex;
-  align-items: baseline;
-  width: 100%;
-}
-
-    .dotted-line .value {
-  margin-left: auto;
-  font-weight: 700;
-  white-space: nowrap;
-  text-align: right;
-}
-
-    /* Subtotais e totais */
-    .subtotal {
-      margin: 12px 0;
-      padding: 8px 0;
-      border-top: 1px solid #ddd;
-    }
-
-    .total {
-      margin: 16px 0;
-      padding: 8px 0;
-      border-top: 2px solid #333;
-      font-size: 12pt;
-      font-weight: 700;
-    }
-
-    /* Condições de pagamento */
-    .payment-conditions {
-      margin: 20px 0;
-    }
-
-    .payment-conditions ul {
-      list-style: disc;
-      padding-left: 20px;
-      margin: 8px 0;
-    }
-
-    .payment-conditions li {
-      margin: 4px 0;
-      font-size: 11pt;
-    }
-
-    /* Informações adicionais */
-    .additional-info {
-      margin: 20px 0;
-      font-size: 11pt;
-    }
-
-    .company-info {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 30px;
-    }
-
-    .company-details {
-      flex: 1;
-    }
-
-    .contact-info {
-      flex: 1;
-      text-align: left;
-      margin-left: 500px;
-      margin-top: 58px;
-    }
-
-    .contact-info a {
-      color: var(--via-blue);
-      text-decoration: none;
-    }
-
-    .date-location {
-      margin-top: 20px;
-      font-size: 11pt;
-    }
-
-    /* Detalhes técnicos em fonte menor */
-    .technical-details {
-      font-size: 9pt;
-      color: var(--muted);
-      margin-left: 20px;
-      font-style: italic;
-    }
-
-    /* Imagens em página inteira */
-    .full-page-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 1;
-    }
-    section.print-page.img-page {
-      padding: 0 !important;
-      position: relative;
-      overflow: hidden;
-    }
-    section.print-page.img-page > img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
+    .header-content { margin-left: 0; margin-top: 50px; }
+    h1 { margin: 0 0 8px 0; font-size: 18pt; line-height: 1.2; color: var(--text-color); font-weight: 700; }
+    .cliente-info { margin: 0 0 20px 0; font-size: 11pt; }
+    .section { margin: 20px 0; }
+    .section-title { font-size: 11pt; font-weight: 700; color: var(--text-color); margin: 0 0 8px 0; }
+    .objeto { margin: 20px 0; font-size: 11pt; }
+    .item-list { list-style: none; padding: 0; margin: 8px 0; }
+    .item-list li { display: flex; align-items: baseline; margin: 4px 0; font-size: 11pt; }
+    .item-list li::before { content: "✓"; margin-right: 8px; font-weight: bold; flex-shrink: 0; }
+    .item-content { flex: 1; display: flex; align-items: baseline; gap: 8px; }
+    .item-description { flex: 0 1 auto; }
+    .item-dots { flex: 1 1 auto; border-bottom: 1px dotted #666; height: 0; transform: translateY(-2px); }
+    .price { margin-left: auto; font-weight: 700; white-space: nowrap; text-align: right; }
+    .dotted-line { display: flex; align-items: baseline; margin: 8px 0; font-size: 11pt; }
+    .dotted-line .label { flex: 0 0 auto; font-weight: 700; }
+    .dotted-line .dots { flex: 1; border-bottom: 1px dotted #666; margin: 0 8px; height: 0; transform: translateY(-2px); }
+    .line-item { display: flex; align-items: baseline; width: 100%; }
+    .dotted-line .value { margin-left: auto; font-weight: 700; white-space: nowrap; text-align: right; }
+    .subtotal { margin: 12px 0; padding: 8px 0; border-top: 1px solid #ddd; }
+    .total { margin: 16px 0; padding: 8px 0; border-top: 2px solid #333; font-size: 12pt; font-weight: 700; }
+    .payment-conditions { margin: 20px 0; }
+    .payment-conditions ul { list-style: disc; padding-left: 20px; margin: 8px 0; }
+    .payment-conditions li { margin: 4px 0; font-size: 11pt; }
+    .additional-info { margin: 20px 0; font-size: 11pt; }
+    .company-info { display: flex; justify-content: space-between; margin-top: 30px; }
+    .company-details { flex: 1; }
+    .contact-info { flex: 1; text-align: left; margin-left: 500px; margin-top: 58px; }
+    .contact-info a { color: var(--via-blue); text-decoration: none; }
+    .date-location { margin-top: 20px; font-size: 11pt; }
+    .technical-details { font-size: 9pt; color: var(--muted); margin-left: 20px; font-style: italic; }
+    .full-page-img { width: 100%; height: 100%; object-fit: cover; display: block; position: absolute; top: 0; left: 0; z-index: 1; }
+    section.print-page.img-page { padding: 0 !important; position: relative; overflow: hidden; }
+    section.print-page.img-page > img { width: 100%; height: 100%; object-fit: cover; display: block; position: absolute; top: 0; left: 0; }
     @media print {
-      section.print-page.img-page {
-        box-shadow: none;
-        border: none;
-        page-break-after: always;
-        margin: 0;
-        width: 297mm;
-        min-height: 210mm;
-        padding: 0 !important;
-      }
-      section.print-page.img-page > img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
+      section.print-page.img-page { box-shadow: none; border: none; page-break-after: always; margin: 0; width: 297mm; min-height: 210mm; padding: 0 !important; }
+      section.print-page.img-page > img { width: 100%; height: 100%; object-fit: cover; }
     }
-
-    /* Responsividade */
     @media screen and (max-width: 1200px) {
-      section.print-page {
-        width: 100%;
-        min-height: auto;
-        padding: 16px;
-      }
+      section.print-page { width: 100%; min-height: auto; padding: 16px; }
       #conteudo-proposta { margin: 0; }
       .logo-via { position: relative; top: 0; left: 0; margin-bottom: 20px; }
       .header-content { margin-top: 0; }
     }
-
     @media print {
       body { background: white; }
       #toolbar { display: none !important; }
       #conteudo-proposta { margin: 0; }
-      section.print-page {
-        box-shadow: none;
-        border: none;
-        page-break-after: always;
-        margin: 0;
-        width: 297mm;
-        min-height: 210mm;
-        padding: 20mm;
-      }
+      section.print-page { box-shadow: none; border: none; page-break-after: always; margin: 0; width: 297mm; min-height: 210mm; padding: 20mm; }
       section.print-page.no-break-print {
-      break-inside: avoid;
-      page-break-inside: avoid;
-      /* Garante altura exata da página */
-      min-height: 210mm !important;
-      height: 210mm !important;
-      max-height: 210mm !important;
-      overflow: visible !important;
-    }
+        break-inside: avoid;
+        page-break-inside: avoid;
+        min-height: 210mm !important;
+        height: 210mm !important;
+        max-height: 210mm !important;
+        overflow: visible !important;
+      }
     }
   </style>
 </head>
+
 <body data-modulo="proposta">
   <div id="toolbar">
     <button id="btnSalvarPDF" class="btn">Salvar PDF</button>
@@ -395,12 +177,10 @@
 
     <!-- Página 1 -->
     <section class="print-page no-break-print">
-      <!-- Logo VIA -->
       <div class="logo-via">
-        <img src="img/logo1.png" alt="Logo VIA" />
+        <img src="img/logo1.PNG" alt="Logo VIA" />
       </div>
 
-      <!-- Cabeçalho -->
       <div class="header-content">
         <h1>Proposta Comercial</h1>
         <div class="cliente-info">
@@ -408,19 +188,13 @@
         </div>
       </div>
 
-      <!-- Objeto -->
       <div class="objeto">
         <strong>Objeto:</strong> <span id="objeto-proposta">Painel de LED outdoor P5.0mm outdoor 288x480cm Dupla face</span>
       </div>
 
-      <!-- Itens inclusos (Equipamentos) -->
       <div class="section">
         <div class="section-title">Itens inclusos (Equipamentos):</div>
-        
-        <div id="tabela-equipamentos">
-          <!-- Conteúdo será preenchido via JavaScript -->
-        </div>
-
+        <div id="tabela-equipamentos"></div>
         <div class="subtotal">
           <div class="dotted-line">
             <span class="label">Valor equipamentos</span>
@@ -430,14 +204,9 @@
         </div>
       </div>
 
-      <!-- Itens opcionais complementares -->
       <div class="section">
         <div class="section-title">Itens opcionais complementares (Estrutura/ mão de obra):</div>
-        
-        <ul class="item-list" id="lista-instalacao">
-          <!-- Conteúdo será preenchido via JavaScript -->
-        </ul>
-
+        <ul class="item-list" id="lista-instalacao"></ul>
         <div class="subtotal">
           <div class="dotted-line">
             <span class="label">Valor materiais/instalação</span>
@@ -447,7 +216,6 @@
         </div>
       </div>
 
-      <!-- Valor total -->
       <div class="total">
         <div class="dotted-line">
           <span class="label">Valor total</span>
@@ -459,20 +227,29 @@
 
     <!-- Página 2 -->
     <section class="print-page">
-      <!-- Logo VIA na página 2 -->
       <div class="logo-via">
-        <img src="img/logo1.png" alt="Logo VIA" />
+        <img src="img/logo1.PNG" alt="Logo VIA" />
       </div>
 
-      <!-- Condições de pagamento -->
       <div class="payment-conditions">
         <div class="section-title">Condições de pagamento:</div>
-        <ul id="lista-condicoes">
-          <!-- Conteúdo será preenchido via JavaScript -->
-        </ul>
+        <ul id="lista-condicoes"></ul>
       </div>
 
-      <!-- Prazo e Garantia -->
+      <div class="payment-conditions" id="condicoes-locacao" style="margin-top: 12px;">
+        <div class="section-title">Condição de pagamento (Locação):</div>
+        <table style="width:100%; font-size:11pt; border-collapse: collapse;">
+          <thead>
+            <tr style="border-bottom: 1px solid #ccc;">
+              <th style="text-align:left;">Prazo</th>
+              <th style="text-align:left;">Parcela mensal</th>
+              <th style="text-align:left;">Total pago</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaLocacaoProposta"></tbody>
+        </table>
+      </div>
+
       <div class="additional-info">
         <div class="dotted-line">
           <span class="label">Prazo de entrega</span>
@@ -482,7 +259,6 @@
         <div style="font-style: italic; font-size: 10pt; margin-left: 0; margin-top: 2px;">
           (Após a assinatura do contrato e pagamento da entrada)
         </div>
-        
         <div class="dotted-line" style="margin-top: 12px;">
           <span class="label">Garantia</span>
           <span class="dots"></span>
@@ -490,18 +266,15 @@
         </div>
       </div>
 
-      <!-- Itens complementares -->
       <div class="additional-info">
         <div class="section-title">Itens complementares para instalação: (Materiais serralheria/ fixação):</div>
         <p>Visando a praticidade e a agilidade para nossos clientes, a Via Painéis possibilita a entrega do <strong>projeto 100% completo</strong> por possuir serralheria própria. Caso o cliente tenha empresa ou profissional de sua preferência, a Via Painéis orientará a maneira como devem ser executadas as estruturas de fixação.</p>
       </div>
 
-      <!-- Validade -->
       <div class="additional-info">
         <p><strong>Esta proposta tem validade de 15 dias ou até durar o estoque.</strong></p>
       </div>
 
-      <!-- Informações da empresa e contato -->
       <div class="company-info">
         <div class="company-details">
           <div class="section-title">Via Painéis</div>
@@ -522,7 +295,6 @@
         </div>
       </div>
 
-      <!-- Data -->
       <div class="date-location">
         <span id="data-emissao">Porto Belo, 15 de agosto de 2025</span>
       </div>
@@ -541,20 +313,18 @@
   </div>
 
   <!-- Scripts necessários -->
-  <!-- Biblioteca para capturar a página em imagem -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  
-  <!-- Biblioteca para criar PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/vfs_fonts.js"></script>
-
-  <!-- Biblioteca para criar Word DOCX -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.min.js"></script>
 
   <!-- Seu código -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./supabaseClient.js"></script>
   <script src="./app.js"></script>
+
+  <!-- Replicar data da 2ª página se necessário -->
   <script>
-    // Replicar a data no rodapé da 2ª página se necessário
     document.addEventListener('DOMContentLoaded', () => {
       const dataEmissao = document.getElementById('data-emissao');
       const dataEmissaoDup = document.getElementById('data-emissao-dup');
@@ -563,36 +333,116 @@
       }
     });
   </script>
- <script>
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    const dados = JSON.parse(localStorage.getItem('dadosProposta'));
-    
-    if (dados && typeof dados.total === 'number') {
-      const totalOriginal = dados.total;
-      const totalArredondado = Math.ceil(totalOriginal / 100) * 100;
-      const diferenca = totalArredondado - totalOriginal;
-      
-      if (diferenca > 0) {
-        // Adiciona diferença na instalação
-        dados.custoInstalacao = (dados.custoInstalacao || 0) + diferenca;
-        dados.total = totalArredondado;
-        
-        // Atualiza tela
-        const totalInstalacao = (dados.custoEstrutura || 0) + (dados.custoEletrica || 0) + 
-                               (dados.custoInstalacao || 0) + (dados.custoPilar || 0) + 
-                               (dados.custoSapata || 0) + (dados.custoACM || 0);
-        
-        document.getElementById('total-instalacao').textContent = 
-          totalInstalacao.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        document.getElementById('total-geral').textContent = 
-          totalArredondado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        
-        // Salva dados
-        localStorage.setItem('dadosProposta', JSON.stringify(dados));
+
+  <!-- Arredondamento de totais e atualização de tela -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        const dados = JSON.parse(localStorage.getItem('dadosProposta'));
+        if (dados && typeof dados.total === 'number') {
+          const totalOriginal = dados.total;
+          const totalArredondado = Math.ceil(totalOriginal / 100) * 100;
+          const diferenca = totalArredondado - totalOriginal;
+
+          if (diferenca > 0) {
+            dados.custoInstalacao = (dados.custoInstalacao || 0) + diferenca;
+            dados.total = totalArredondado;
+
+            const totalInstalacao = (dados.custoEstrutura || 0) + (dados.custoEletrica || 0) +
+                                    (dados.custoInstalacao || 0) + (dados.custoPilar || 0) +
+                                    (dados.custoSapata || 0) + (dados.custoACM || 0);
+
+            document.getElementById('total-instalacao').textContent =
+              totalInstalacao.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('total-geral').textContent =
+              totalArredondado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+            localStorage.setItem('dadosProposta', JSON.stringify(dados));
+          }
+        }
+      }, 200);
+    });
+  </script>
+
+  <!-- ✅ Preenchimento das parcelas de LOCACAO -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const dados = JSON.parse(localStorage.getItem('dadosProposta'));
+      // Se vier locação (array de objetos), renderiza a tabela
+      if (dados?.locacao && Array.isArray(dados.locacao)) {
+        const tabela = document.getElementById('tabelaLocacaoProposta');
+        if (tabela) {
+          tabela.innerHTML = '';
+          dados.locacao.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${item.prazo} meses</td>
+              <td>${item.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+              <td>${item.totalPago.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+            `;
+            tabela.appendChild(tr);
+          });
+        }
+      } else {
+        // Se não houver locação, esconde o bloco para não ficar vazio
+        const bloco = document.getElementById('condicoes-locacao');
+        if (bloco) bloco.style.display = 'none';
       }
+    });
+  </script>
+<!-- ✅ Controle de renderização da locação -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const dados = JSON.parse(localStorage.getItem('dadosProposta'));
+  const bloco = document.getElementById('condicoes-locacao');
+  const tabela = document.getElementById('tabelaLocacaoProposta');
+
+  // 🔒 Garante que o bloco fique oculto por padrão
+  if (bloco) bloco.style.display = 'none';
+
+  // ✅ Só continua se existir proposta válida e o usuário tiver marcado o checkbox
+  if (!dados || !dados.inputs || dados.inputs.oferecerLocacao !== true && dados.inputs.oferecerLocacao !== "on") {
+    console.log("Locação não ativada — bloco oculto.");
+    return;
+  }
+
+  // 🔢 Função PRICE (mesma de locacao.js)
+  function calcularLocacao(valorTotal) {
+    if (!valorTotal || valorTotal <= 0) return [];
+    const prazos = [12, 24, 36, 48, 60];
+    const resultados = [];
+    for (let n of prazos) {
+      const i = n === 12 ? 0.026 : 0.024;
+      const pmt = valorTotal * (i * Math.pow(1 + i, n)) / (Math.pow(1 + i, n) - 1);
+      resultados.push({
+        prazo: n,
+        valor: pmt,
+        totalPago: pmt * n
+      });
     }
-  }, 200);
+    return resultados;
+  }
+
+  function formatarMoeda(valor) {
+    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+
+  // 💰 Executa o cálculo e exibe
+  const parcelas = calcularLocacao(dados.total || 0);
+  if (parcelas.length && tabela && bloco) {
+    tabela.innerHTML = parcelas.map(p =>
+      `<tr>
+        <td>${p.prazo} meses</td>
+        <td>${formatarMoeda(p.valor)}</td>
+        <td>${formatarMoeda(p.totalPago)}</td>
+      </tr>`
+    ).join('');
+    bloco.style.display = 'block';
+  }
+
+  // Atualiza dadosProposta com locação calculada (opcional)
+  dados.locacao = parcelas;
+  localStorage.setItem('dadosProposta', JSON.stringify(dados));
 });
 </script>
 </body>

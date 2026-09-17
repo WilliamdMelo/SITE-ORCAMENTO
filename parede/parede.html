@@ -6,9 +6,19 @@
   <title>Painel Indoor com Ímã — Via Painéis</title>
   <link rel="stylesheet" href="../style.css" />
   <script src="../produtos.js"></script>
+  <script src="../locacao.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../supabaseClient.js"></script>
   <script defer src="../app.js"></script>
 </head>
 <body class="p-6 bg-gray-50" data-modulo="parede">
+  <header id="user-header" class="hidden">
+    <div class="container">
+        <span id="user-email"></span>
+        <button id="logout-button">Sair</button>
+    </div>
+  </header>
+
   <a href="../index.html" class="text-blue-600 underline mb-4 inline-block">← Voltar</a>
   <h1 class="text-2xl font-bold text-indigo-700 mb-4">Painel Indoor com Ímã</h1>
   <form id="orcamento-form">
@@ -25,9 +35,6 @@
     <div class="flex items-center gap-6 mb-4">
         <label class="flex items-center gap-2">
             <input type="radio" name="tipoFace" value="uma" checked> Uma Face
-        </label>
-        <label class="flex items-center gap-2">
-            <input type="radio" name="tipoFace" value="dupla"> Dupla Face
         </label>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -49,6 +56,18 @@
     <div>
       <label for="valorUnitario" class="block text-sm font-medium text-gray-700 mb-1">Valor Unitário do Painel (R$)</label>
       <input type="number" id="valorUnitario" class="input mb-6" readonly />
+    </div>
+       <div class="mb-4">
+      <label class="flex items-center gap-2">
+        <input type="checkbox" id="incluirBorda" /> Incluir borda no pedido?
+      </label>
+      <div id="bordaOptions" style="display:none; margin-top:8px;">
+        <label for="tipoBorda" class="block text-sm font-medium text-gray-700 mb-1">Tipo de borda</label>
+        <select id="tipoBorda" class="input w-48">
+          <option value="15x10">15x10 — R$ 293,00 / m</option>
+          <option value="40x10">40x10 — R$ 345,00 / m</option>
+        </select>
+      </div>
     </div>
     <h2 class="text-lg font-semibold mb-2">Instalação</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -81,33 +100,54 @@
         <option value="Novastar TB2" data-valor="2400">Controladora de vídeo - Novastar TB2</option>
         <option value="Novastar TB30" data-valor="1960">Controladora de vídeo - Novastar TB30</option>
         <option value="Novastar TB40" data-valor="2400">Controladora de vídeo - Novastar TB40</option>
+        <option value="Novastar TB50" data-valor="6200">Controladora de vídeo - Novastar TB50</option>
+        <option value="Novastar TB60" data-valor="7900">Controladora de vídeo - Novastar TB60</option>
+        <option value="Novastar V960" data-valor="3900">Processadora de vídeo - Novastar V960</option>
+        <option value="Novastar VX400" data-valor="11400">Processadora de vídeo - Novastar VX400</option>
+        <option value="Novastar VX600" data-valor="15958">Processadora de vídeo - Novastar VX600</option>
         <option value="Huidu A3" data-valor="1040">Controladora de video - Huidu A3</option>
       </select>
     </div>
+      <!-- ============================== -->
+<!-- BLOCO: OPÇÃO DE LOCAÇÃO -->
+<!-- ============================== -->
+<div class="mt-6 border-t border-gray-300 pt-4">
+  <label class="flex items-center gap-2 mb-2">
+    <input type="checkbox" id="oferecerLocacao" />
+    <span class="font-semibold text-gray-800">Oferecer opção de locação</span>
+  </label>
+
+  <!-- Conteúdo da locação (inicialmente oculto) -->
+  <div id="blocoLocacao" style="display: none;">
+    <h3 class="text-sm font-medium text-gray-700 mb-2">Condições de locação</h3>
+
+    <table class="w-full text-sm border border-gray-300 rounded">
+      <thead class="bg-gray-100 text-gray-700">
+        <tr>
+          <th class="py-1 px-2 text-left">Prazo</th>
+          <th class="py-1 px-2 text-left">Parcela mensal</th>
+          <th class="py-1 px-2 text-left">Total pago</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaLocacao">
+        <tr>
+          <td colspan="3" class="py-2 px-3 text-gray-400 italic text-center">
+            As condições aparecerão aqui quando ativar a opção de locação.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<!-- ============================== -->
+<!-- FIM DO BLOCO DE LOCAÇÃO -->
+
     <button type="submit" class="btn-indigo mb-6">💰 Calcular Orçamento</button>
   </form>
   <div id="resultado" class="bg-white p-4 rounded shadow text-gray-800 hidden"></div>
   <div id="container-gerar-proposta" class="mt-4 hidden">
     <button type="button" id="btnGerarProposta" class="btn-indigo">📄 Gerar Proposta</button>
   </div>
-  <script>
-    // Pega todos os radios de tipo de face e o input do valor da estrutura
-    const radiosFace = document.querySelectorAll('input[name="tipoFace"]');
-    const inputValorEstrutura = document.getElementById("valorEstrutura");
 
-    // Função que atualiza o valor do input
-    function atualizarValorEstrutura() {
-        const faceSelecionada = document.querySelector('input[name="tipoFace"]:checked').value;
-        inputValorEstrutura.value = faceSelecionada === "dupla" ? 1800 : 1360;
-    }
-
-    // Atualiza o valor quando a página carrega
-    atualizarValorEstrutura();
-
-    // Atualiza o valor sempre que o usuário mudar a face
-    radiosFace.forEach(radio => {
-        radio.addEventListener("change", atualizarValorEstrutura);
-    });
-</script>
 </body>
 </html>

@@ -1224,3 +1224,48 @@ video {
     box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
   }
 }
+
+/*
+==================================================================================
+  NOVOS ESTILOS PARA A BARRA DE USUÁRIO (ADICIONADOS AQUI)
+==================================================================================
+*/
+
+#user-header {
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #1f2937; /* Cinza escuro */
+    color: white;
+    padding: 10px 20px;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+#user-header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+#user-header #logout-button {
+    background-color: #ef4444; /* Vermelho */
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#user-header #logout-button:hover {
+    background-color: #dc2626;
+}
+
+/* A classe .hidden já existe no seu CSS do Tailwind, mas garantimos aqui */
+#user-header.hidden {
+    display: none !important;
+}

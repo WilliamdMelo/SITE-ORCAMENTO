@@ -7,9 +7,15 @@
   <title>Via Painéis - Orçamentos</title>
   <link rel="stylesheet" href="style.css" />
   
-  
 </head>
-<body class="p-6 bg-gray-50">
+<body class="p-6 bg-gray-50" data-modulo="index">
+  <header id="user-header" class="hidden">
+    <div class="container">
+        <span id="user-email"></span>
+        <button id="logout-button">Sair</button>
+    </div>
+  </header>
+
   <h1 class="text-3xl font-bold text-indigo-700 mb-6">Escolha o tipo de projeto</h1>
   <nav class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     <a href="fachada/fachada.html" class="btn-indigo text-center">Painel Outdoor em Fachada</a>
@@ -17,7 +23,12 @@
     <a href="vitrine/vitrine.html" class="btn-indigo text-center">Painel de Vitrine Indoor</a>
     <a href="parede/parede.html" class="btn-indigo text-center">Painel Indoor com Ímã</a>
     <a href="historico.html" class="btn-indigo text-center bg-gray-600 hover:bg-gray-700">Histórico de Propostas</a>
+    <a href="admin.html" id="admin-link" class="btn-indigo text-center bg-gray-800 hover:bg-gray-900 hidden">Admin</a>
   </nav>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabaseClient.js"></script>
+  <script defer src="app.js"></script>
   
 </body>
 </html>
