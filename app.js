@@ -694,7 +694,7 @@ switch (tipoFace) {
   multiplicaEletrica = 1;
   multiplicaControladora = 1;
   multiplicaEstrutura = 1;
-  valorEstruturaUnit = 1360;
+  valorEstruturaUnit = 1;
   break;
 
   case 'dupla':
@@ -702,7 +702,7 @@ switch (tipoFace) {
   multiplicaEletrica = 2;
   multiplicaControladora = 1;
   multiplicaEstrutura = 1;
-  valorEstruturaUnit = 1800;
+  valorEstruturaUnit = 1;
   break;
 
   case 'dupla_angulo':
@@ -710,7 +710,7 @@ switch (tipoFace) {
   multiplicaEletrica = 2;
   multiplicaControladora = 1;
   multiplicaEstrutura = 2;
-  valorEstruturaUnit = 1360;
+  valorEstruturaUnit = 1;
   break;
 
   case 'dupla_lona':
@@ -718,7 +718,7 @@ switch (tipoFace) {
   multiplicaEletrica = 1;
   multiplicaControladora = 1;
   multiplicaEstrutura = 1;
-  valorEstruturaUnit = 1560;
+  valorEstruturaUnit = 1;
   break;
 
   case 'dupla_angulo_lona':
@@ -726,7 +726,7 @@ switch (tipoFace) {
   multiplicaEletrica = 1;
   multiplicaControladora = 1;
   multiplicaEstrutura = 1;
-  valorEstruturaUnit = 1760;
+  valorEstruturaUnit = 1;
   break;
 }
 
