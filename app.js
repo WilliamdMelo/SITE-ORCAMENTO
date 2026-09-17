@@ -379,13 +379,47 @@ function atualizarPainelSelecionado() {
     valorUnitarioInput.focus();
   } else if (painelSelecionado) {
     valorUnitarioInput.value = painelSelecionado.valor;
-    valorUnitarioInput.readOnly = true;
+    valorUnitarioInput.readOnly = false;
     valorUnitarioInput.placeholder = "";
   } else {
     valorUnitarioInput.value = "";
     valorUnitarioInput.readOnly = true;
     valorUnitarioInput.placeholder = "Valor Unitário (R$)";
   }
+}
+
+function obterValorAjustado(id, valorAutomatico) {
+  const input = document.getElementById(id);
+  if (!input) return valorAutomatico;
+  if (!input.dataset.userEdited) input.value = Number(valorAutomatico || 0).toFixed(2);
+  const valor = parseFloat(input.value);
+  return Number.isFinite(valor) && valor >= 0 ? valor : valorAutomatico;
+}
+
+function prepararCamposDeValorEditavel() {
+  const form = document.getElementById('orcamento-form');
+  if (!form || document.getElementById('ajustes-valores')) return;
+  const bloco = document.createElement('div');
+  bloco.id = 'ajustes-valores';
+  bloco.className = 'mt-6 border-t border-gray-300 pt-4';
+  bloco.innerHTML = `
+    <h2 class="text-lg font-semibold mb-2">Ajustes de valores da proposta</h2>
+    <p class="text-sm text-gray-600 mb-4">Os valores começam com o cadastro automático e podem ser alterados nesta proposta.</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <label class="block text-sm font-medium text-gray-700">Controladora (R$)<input id="ajusteControladora" type="number" min="0" step="0.01" class="input mt-1"></label>
+      <label class="block text-sm font-medium text-gray-700">Estrutura unitária (R$)<input id="ajusteEstrutura" type="number" min="0" step="0.01" class="input mt-1"></label>
+      <label class="block text-sm font-medium text-gray-700">Elétrica (R$)<input id="ajusteEletrica" type="number" min="0" step="0.01" class="input mt-1"></label>
+      <label class="block text-sm font-medium text-gray-700">Instalação ou frete (R$)<input id="ajusteInstalacao" type="number" min="0" step="0.01" class="input mt-1"></label>
+      <label class="block text-sm font-medium text-gray-700">ACM (R$)<input id="ajusteACM" type="number" min="0" step="0.01" class="input mt-1"></label>
+      <label class="block text-sm font-medium text-gray-700">Pilar (R$)<input id="ajustePilar" type="number" min="0" step="0.01" class="input mt-1"></label>
+      <label class="block text-sm font-medium text-gray-700">Sapata (R$)<input id="ajusteSapata" type="number" min="0" step="0.01" class="input mt-1"></label>
+      <label class="block text-sm font-medium text-gray-700">Borda (R$)<input id="ajusteBorda" type="number" min="0" step="0.01" class="input mt-1"></label>
+    </div>`;
+  const submit = form.querySelector('button[type="submit"]');
+  form.insertBefore(bloco, submit || null);
+  bloco.querySelectorAll('input').forEach(input => input.addEventListener('input', () => {
+    input.dataset.userEdited = 'true';
+  }));
 }
 
 function calcularMedidaFinal(larguraInput, alturaInput) {
@@ -472,6 +506,7 @@ function getFormInputs(form) {
 
 function preencherFormulario(dados) {
     if (!dados || !dados.inputs) return;
+    prepararCamposDeValorEditavel();
     const inputs = dados.inputs;
     for (const key in inputs) {
     const element = document.getElementById(key) || document.querySelector(`[name="${key}"][value="${inputs[key]}"]`);
@@ -486,11 +521,19 @@ function preencherFormulario(dados) {
     }
     }
     document.getElementById('modeloPainel')?.dispatchEvent(new Event('change'));
+    ['valorUnitario', 'ajusteControladora', 'ajusteEstrutura', 'ajusteEletrica', 'ajusteInstalacao', 'ajusteACM', 'ajustePilar', 'ajusteSapata', 'ajusteBorda'].forEach(id => {
+      const element = document.getElementById(id);
+      if (element && inputs[id] !== undefined && inputs[id] !== '') {
+        element.value = inputs[id];
+        element.dataset.userEdited = 'true';
+      }
+    });
     if (dados.modulo === 'pilar') document.getElementById('tipoPilar')?.dispatchEvent(new Event('change'));
     if (dados.modulo === 'totem') document.querySelector('input[name="tipoEntrega"]')?.dispatchEvent(new Event('change'));
 }
 
 function calcularOrcamento(modulo) {
+  prepararCamposDeValorEditavel();
   const resultadoDiv = document.getElementById("resultado");
   if (!painelSelecionado) {
   if (!window.__carregandoHistorico) {
@@ -697,12 +740,26 @@ custoEletrica *= multiplicaEletrica;
 custoControladora *= multiplicaControladora;
 
 // Calcular estrutura: quantidadeDeEstruturas × multiplicaEstrutura × valorEstruturaUnit
+const valorEstruturaInformado = parseFloat(document.getElementById('valorEstrutura')?.value);
+if (Number.isFinite(valorEstruturaInformado) && valorEstruturaInformado >= 0) valorEstruturaUnit = valorEstruturaInformado;
 custoEstrutura = quantidadeDeEstruturas * multiplicaEstrutura * valorEstruturaUnit;
 
 // Condição para zerar estrutura no módulo 'parede'
 if (modulo === 'parede') {
   custoEstrutura = 0;
 }
+
+// Os valores editados pelo usuário têm prioridade sobre os cálculos automáticos.
+custoPainel = obterValorAjustado('valorUnitario', valorUnitario) * qtd * multiplicaPainel;
+custoControladora = obterValorAjustado('ajusteControladora', custoControladora);
+const estruturaUnitarioFinal = obterValorAjustado('ajusteEstrutura', valorEstruturaUnit);
+custoEstrutura = modulo === 'parede' ? 0 : quantidadeDeEstruturas * multiplicaEstrutura * estruturaUnitarioFinal;
+custoEletrica = obterValorAjustado('ajusteEletrica', custoEletrica);
+custoInstalacao = obterValorAjustado('ajusteInstalacao', custoInstalacao);
+custoACM = obterValorAjustado('ajusteACM', custoACM);
+custoPilar = obterValorAjustado('ajustePilar', custoPilar);
+custoSapata = obterValorAjustado('ajusteSapata', custoSapata);
+custoBorda = obterValorAjustado('ajusteBorda', custoBorda);
 
 const total = custoPainel + custoControladora + custoEstrutura + custoEletrica + custoInstalacao + custoPilar + custoSapata + custoACM + custoBorda;
 
@@ -712,7 +769,7 @@ ultimoResultado = {
   custoPilar, custoSapata, custoACM, totalACM, tipoEntrega, 
   isDuplaFace: (multiplicaPainel > 1), controladoraTexto: optionSelecionadaCtrl.text, 
   vendedorId, modulo, inputs: getFormInputs(document.getElementById('orcamento-form')), 
-  valorPorMetroQuadrado, tipoFace, quantidadeDeEstruturas, multiplicaEstrutura, valorEstruturaUnit,
+  valorPorMetroQuadrado, tipoFace, quantidadeDeEstruturas, multiplicaEstrutura, valorEstruturaUnit: estruturaUnitarioFinal,
   custoBorda, metrosBorda
 };
 
@@ -725,7 +782,7 @@ if (tipoFace !== 'uma') {
 }
 
 resultadoHTML += `<li><strong>Painel:</strong> ${formatCurrency(custoPainel)} (${medidaFinal})</li>`;
-if (custoEstrutura > 0) resultadoHTML += `<li><strong>Estrutura:</strong> ${formatCurrency(custoEstrutura)} (${quantidadeDeEstruturas * multiplicaEstrutura} × ${formatCurrency(valorEstruturaUnit)})</li>`;
+if (custoEstrutura > 0) resultadoHTML += `<li><strong>Estrutura:</strong> ${formatCurrency(custoEstrutura)} (${quantidadeDeEstruturas * multiplicaEstrutura} × ${formatCurrency(estruturaUnitarioFinal)})</li>`;
 if (custoEletrica > 0) resultadoHTML += `<li><strong>Elétrica:</strong> ${formatCurrency(custoEletrica)}</li>`;
 if (custoACM > 0) resultadoHTML += `<li><strong>Revestimento ACM (${totalACM.toFixed(2)} m²):</strong> ${formatCurrency(custoACM)}</li>`;
 if (custoBorda > 0) {
@@ -1045,8 +1102,8 @@ async function gerarPDF() {
     const elementoParaImprimir = document.getElementById('conteudo-proposta');
     const paginas = elementoParaImprimir.querySelectorAll('section.print-page');
     const docDefinition = {
-    pageSize: { width: 841.89, height: 595.28 }, // A4 horizontal (landscape)
-    pageOrientation: 'landscape',
+    pageSize: { width: 595.28, height: 841.89 }, // A4 vertical (portrait)
+    pageOrientation: 'portrait',
     pageMargins: [0, 0, 0, 0],
     content: []
     };
@@ -1057,7 +1114,7 @@ async function gerarPDF() {
     if (i > 0) {
     docDefinition.content.push({ text: '', pageBreak: 'before' });
     }
-    docDefinition.content.push({ image: imgData, width: 841.89 }); // largura A4 horizontal
+    docDefinition.content.push({ image: imgData, width: 595.28 }); // largura A4 vertical
     }
     pdfMake.createPdf(docDefinition).download('proposta.pdf');
 }
