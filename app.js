@@ -891,7 +891,6 @@ function preencherProposta() {
     somaOpcionais = opcionaisKeys.reduce((acc,k) => round2(acc + opcionais[k]), 0);
 
     // Totais finais exibidos
-    const totalInstalacaoExibido = somaOpcionais;
     const totalGeralExibido = round2(equipamentosTotal + somaOpcionais); // deve ser igual a totalArredondado
 
     // Atualiza dados ajustados para gerar PDF/Word coerente com a exibição
@@ -906,11 +905,6 @@ function preencherProposta() {
     dadosAjustados.custoBorda = opcionais['custoBorda'];
     dadosAjustados.total = totalGeralExibido;
     dadosAjustados.diferencaArredondamento = diferencaArredondamento;
-
-  if (typeof calcularLocacao === 'function') {
-  const parcelasLocacao = calcularLocacao(ultimoResultado.total);
-  ultimoResultado.locacao = parcelasLocacao;
-}
 
     // Salva a versão ajustada no localStorage para que PDF/Word usem os mesmos números exibidos
     localStorage.setItem('dadosProposta', JSON.stringify(dadosAjustados));
@@ -938,48 +932,6 @@ function preencherProposta() {
       }
     }
 
-    // --- NOVO: calcular "Valor por metro quadrado" mostrado conforme regras solicitadas ---
-    const valorUnitarioNum = Number(dados.valorUnitario) || 0;
-    const valorPorM2Num = Number(dados.valorPorMetroQuadrado) || 0;
-    let valorPorM2Display = 0;
-
-    if (dados.painel && dados.painel.tipo === 'm2') {
-      // Sob medida: usa o valor do modelo (se existir valorPorMetroQuadrado, usa ele; senão valorUnitario)
-      valorPorM2Display = valorPorM2Num || valorUnitarioNum;
-    } else {
-      // Gabinetes: regras específicas por dimensão
-      const dim = (dados.painel && dados.painel.dimensao) ? dados.painel.dimensao.trim() : '';
-      switch (dim) {
-        case '0.96x0.96':
-          // 1 gabinete → exibe valor do gabinete
-          valorPorM2Display = valorUnitarioNum;
-          break;
-        case '0.50x1.00':
-          // soma de dois gabinetes
-          valorPorM2Display = valorUnitarioNum * 2;
-          break;
-        case '0.50x0.50':
-          // soma de quatro gabinetes
-          valorPorM2Display = valorUnitarioNum * 4;
-          break;
-        default:
-          // fallback: tenta derivar por área (valorUnitario / area) ou exibe valorUnitario
-          if (dados.painel && dados.painel.dimensao) {
-            const parts = dados.painel.dimensao.split('x').map(s => parseFloat(s));
-            if (parts.length === 2 && parts[0] > 0 && parts[1] > 0) {
-              const areaGab = parts[0] * parts[1]; // m² do gabinete
-              // Se valorUnitario representa o preço do gabinete, aqui mostramos o equivalente por m²
-              valorPorM2Display = areaGab > 0 ? (valorUnitarioNum / areaGab) : valorUnitarioNum;
-            } else {
-              valorPorM2Display = valorUnitarioNum;
-            }
-          } else {
-            valorPorM2Display = valorUnitarioNum;
-          }
-      }
-    }
-    // ---------------------------------------------------------------------
-
     // Preencher nome do cliente (procura por campos comuns)
     let clienteNome = '-';
     if (dados.inputs) {
@@ -1006,80 +958,36 @@ function preencherProposta() {
     const objetoEl = document.getElementById('objeto-proposta');
     if (objetoEl) objetoEl.textContent = objetoFinal;
 
-    // Equipamentos HTML (mostrar totals exatos) - agora usa dimensão do gabinete quando aplicável
-    let labelEquipamento = '';
-    if (dados.painel && dados.painel.tipo === 'm2') {
-      labelEquipamento = `✓ ${Math.round(dados.qtd || 0)} m² de LED ${dados.painel?.resolucao || ''} – ${medidaCm} – ${dados.painel?.ambiente || ''}`;
+    // Uma única composição, sem preços ou subtotais por item.
+    const itens = [];
+    if (dados.painel?.tipo === 'm2') {
+      itens.push(`${Math.round(dados.qtd || 0)} m² de LED ${painel.resolucao || ''} – ${medidaCm} – ${painel.ambiente || ''}`);
     } else {
-      labelEquipamento = `✓ ${Math.round(dados.qtd || 0)} gabinetes de LED ${dados.painel?.resolucao || ''} – ${gabineteDimensaoCm} – ${dados.painel?.ambiente || ''}`;
+      itens.push(`${Math.round(dados.qtd || 0)} gabinetes de LED ${painel.resolucao || ''} – ${gabineteDimensaoCm} – ${painel.ambiente || ''}`);
     }
-
-    let equipamentosHTML = `
-    <div class="line-item text-sm">
-      <span class="label">${labelEquipamento}</span>
-      <span class="dots"></span>
-      <span class="price">${formatCurrency(totalPainel)}</span>
-    </div>
-    <div class="text-xs text-gray-500 pl-4">
-      (Valor por unidade fornecido no orçamento: ${formatCurrency(dados.valorUnitario || dados.valorPorMetroQuadrado || 0)})
-    </div>
-    `;
-
-    equipamentosHTML += `
-    <div class="line-item text-sm">
-      <span class="label">✓ ${dados.controladoraTexto || ''}</span>
-      <span class="dots"></span>
-      <span class="price">${formatCurrency(totalControladora)}</span>
-    </div>
-    `;
-
-    document.getElementById('tabela-equipamentos').innerHTML = equipamentosHTML;
-    document.getElementById('total-equipamentos').textContent = formatCurrency(equipamentosTotal);
-
-    // Itens de instalação (usando os valores ajustados do objeto 'opcionais')
-    let instalacaoHTML = "";
-    if (opcionais.custoEstrutura > 0) instalacaoHTML += `<li class="line-item"><span class="label">✓ Estrutura metálica superior de sustentação dos gabinetes de LED;</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoEstrutura)}</span></li>`;
-    if (opcionais.custoEletrica > 0) instalacaoHTML += `<li class="line-item"><span class="label">✓ Elétrica de instalação interna;</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoEletrica)}</span></li>`;
-    if (opcionais.custoBorda > 0) instalacaoHTML += `<li class="line-item"><span class="label">✓ Borda (${dados.inputs?.tipoBorda || ''}) — ${ (dados.metrosBorda || 0).toFixed(2) } m;</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoBorda)}</span></li>`;
-    if (opcionais.custoPilar > 0) instalacaoHTML += `<li class="line-item"><span class="label">✓ Pilar de ferro;</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoPilar)}</span></li>`;
-    if (opcionais.custoSapata > 0) instalacaoHTML += `<li class="line-item"><span class="label">✓ Sapata de concreto;</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoSapata)}</span></li>`;
-    if (opcionais.custoACM > 0) instalacaoHTML += `<li class="line-item"><span class="label">✓ Revestimento em ACM (${(dados.totalACM || 0).toFixed(2)} m²);</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoACM)}</span></li>`;
-    if (opcionais.custoInstalacao > 0) instalacaoHTML += `<li class="line-item"><span class="label">✓ ${dados.tipoEntrega || 'Instalação'} / configuração e fixação no local; ${diferencaArredondamento > 0 ? `<small style="color:#666"> </small>` : ''}</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoInstalacao)}</span></li>`;
-
-    document.getElementById('lista-instalacao').innerHTML = instalacaoHTML;
-    document.getElementById('total-instalacao').textContent = formatCurrency(totalInstalacaoExibido);
-
-    // Totais
+    if (dados.controladoraTexto) itens.push(dados.controladoraTexto);
+    if (opcionais.custoEstrutura > 0) itens.push('Estrutura metálica superior de sustentação dos gabinetes de LED');
+    if (opcionais.custoEletrica > 0) itens.push('Elétrica de instalação interna');
+    if (opcionais.custoBorda > 0) itens.push(`Borda (${dados.inputs?.tipoBorda || ''}) — ${Number(dados.metrosBorda || 0).toFixed(2)} m`);
+    if (opcionais.custoPilar > 0) itens.push('Pilar de ferro');
+    if (opcionais.custoSapata > 0) itens.push('Sapata de concreto');
+    if (opcionais.custoACM > 0) itens.push(`Revestimento em ACM (${Number(dados.totalACM || 0).toFixed(2)} m²)`);
+    if (opcionais.custoInstalacao > 0) itens.push(`${dados.tipoEntrega || 'Instalação'} / configuração e fixação no local`);
+    const lista = document.getElementById('lista-itens-proposta');
+    lista.replaceChildren(...itens.map(descricao => {
+      const item = document.createElement('li');
+      item.textContent = descricao;
+      return item;
+    }));
     document.getElementById('total-geral').textContent = formatCurrency(totalGeralExibido);
 
-    // Condições de pagamento com base no total arredondado
-    const totalProjeto = totalGeralExibido;
-
-    // Opção 1: À vista com 5% de desconto (1+1)
-    const valorComDesconto = totalProjeto * 0.95;
-    const parcelaAVista = valorComDesconto / 2;
-    const condicao1 = `A vista 5% desconto (1+1): ${formatCurrency(parcelaAVista)} + 1 de ${formatCurrency(parcelaAVista)}`;
-
-    // Opção 2: 40% de entrada + 6x
-    const entrada40 = totalProjeto * 0.40;
-    const saldo6x = totalProjeto * 0.60;
-    const parcela6x = saldo6x / 6;
-    const condicao2 = `40% de entrada e saldo em 6x (boleto ou cartão) sem juros: ${formatCurrency(entrada40)} + 6x ${formatCurrency(parcela6x)}`;
-
-    // Opção 3: 12x no cartão com 8% de juros
-    const valorComJuros = totalProjeto * 1.12;
-    const parcela12x = valorComJuros / 12;
-    const condicao3 = `12x de ${formatCurrency(parcela12x)} no cartão de crédito`;
-
-    const condicoesContainer = document.getElementById('lista-condicoes');
-    if (condicoesContainer) {
-      condicoesContainer.innerHTML = `
-        <li>${condicao1};</li>
-        <li>${condicao2};</li>
-        <li>${condicao3};</li>
-      `;
-    }
-
+    // Preserva as condições comerciais sem detalhar valores de parcelas.
+    const condicoes = ['A combinar'];
+    document.getElementById('lista-condicoes').replaceChildren(...condicoes.map(texto => {
+      const item = document.createElement('li');
+      item.textContent = texto;
+      return item;
+    }));
     // Vendedor
     if (vendedor) {
       document.getElementById('vendedor-nome').textContent = vendedor.nome;
@@ -1131,13 +1039,17 @@ async function gerarPDF() {
 
       for (let i = 0; i < paginas.length; i++) {
         const canvas = await window.html2canvas(paginas[i], {
-          scale: 4,
+          scale: 3,
+          windowWidth: 1280,
+          onclone: doc => {
+            doc.getElementById('conteudo-proposta').style.cssText = 'width:210mm;max-width:none;margin:0;padding:0';
+          },
           backgroundColor: '#ffffff',
           useCORS: true,
           logging: false
         });
         if (i > 0) docDefinition.content.push({ text: '', pageBreak: 'before' });
-        docDefinition.content.push({ image: canvas.toDataURL('image/png'), width: 595.28 });
+        docDefinition.content.push({ image: canvas.toDataURL('image/png'), fit: [595.28, 841.89] });
       }
 
       window.pdfMake.createPdf(docDefinition).download('proposta.pdf');
@@ -1158,7 +1070,7 @@ function gerarWord() {
     return;
     }
     
-    const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Table, TableCell, TableRow, WidthType, BorderStyle } = window.docx;
+    const { Document, Packer, Paragraph, TextRun, HeadingLevel } = window.docx;
 
     const dados = JSON.parse(localStorage.getItem('dadosProposta'));
     if (!dados) {
@@ -1174,70 +1086,41 @@ function gerarWord() {
     const nomeVendedor = vendedor.nome ? vendedor.nome.split(' ')[0].toLowerCase() : 'proposta';
     const nomeFicheiro = `proposta comercial ${numeroProposta} - ${nomeVendedor}.docx`;
 
-    const totalEquipamentos = (Number(dados.custoPainel) || 0) + (Number(dados.custoControladora) || 0);
-    const totalInstalacao = (Number(dados.custoEstrutura) || 0) + (Number(dados.custoEletrica) || 0) + (Number(dados.custoInstalacao) || 0) + (Number(dados.custoPilar) || 0) + (Number(dados.custoSapata) || 0) + (Number(dados.custoACM) || 0) + (Number(dados.custoBorda) || 0);
-
-    // Helper para criar uma linha da tabela
-    const createLineItemRow = (label, price) => {
-    return new TableRow({
-    children: [
-    new TableCell({
-    children: [new Paragraph({ children: [new TextRun(label)] })],
-    borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } },
-    }),
-    new TableCell({
-    children: [new Paragraph({ text: price, alignment: AlignmentType.RIGHT })],
-    borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } },
-    }),
-    ],
-    });
-    };
-
-    // converte dimensao do painel (ex: "0.96x0.96") para "96x96cm"
-    let dimensaoCm = '';
-    if (dados.painel && dados.painel.dimensao) {
-      const dparts = dados.painel.dimensao.split('x').map(s => parseFloat(s));
-      if (dparts.length === 2 && !isNaN(dparts[0]) && !isNaN(dparts[1])) {
-        dimensaoCm = `${Math.round(dparts[0]*100)}x${Math.round(dparts[1]*100)}cm`;
-      } else {
-        dimensaoCm = dados.painel.dimensao;
-      }
-    }
-
+    // Usa o conteúdo da proposta para manter Word e tela consistentes.
+    const texto = id => document.getElementById(id)?.textContent.trim() || '';
+    const paragrafo = (text, options = {}) => new Paragraph({ text, spacing: { after: 160 }, ...options });
+    const titulo = text => paragrafo(text, { heading: HeadingLevel.HEADING_2, spacing: { before: 300, after: 180 } });
+    const itens = [...document.querySelectorAll('#lista-itens-proposta li')].map(el => paragrafo(el.textContent, { bullet: { level: 0 } }));
+    const condicoes = [...document.querySelectorAll('#lista-condicoes li')].map(el => paragrafo(el.textContent, { bullet: { level: 0 } }));
     const doc = new Document({
-    sections: [{
-    children: [
-    new Paragraph({ text: "Proposta comercial", heading: HeadingLevel.HEADING_1, spacing: { after: 400 } }),
-    new Paragraph({ text: `1 – OBJETO: Painel LED ${dados.painel?.resolucao || ''} ${dados.painel?.ambiente || ''} ${dados.medidaFinal || ''}`, spacing: { after: 200 } }),
-    new Paragraph({ text: "Itens inclusos (Equipamentos):", style: "strong", spacing: { after: 200 } }),
-    new Table({
-    columnWidths: [8000, 2000],
-    rows: [
-    createLineItemRow(`✓ ${dados.isDuplaFace ? (dados.qtd * 2) : dados.qtd} Gabinetes LED ${dados.painel?.resolucao || ''} - ${dimensaoCm} - ${dados.painel?.ambiente || ''}`, formatCurrency(dados.custoPainel)),
-    createLineItemRow(`✓ ${dados.isDuplaFace ? '2' : '1'} ${dados.controladoraTexto}`, formatCurrency(dados.custoControladora)),
-    createLineItemRow('Valor equipamentos', formatCurrency(totalEquipamentos)),
-    ],
-    }),
-    new Paragraph({ text: "\nItens opcionais complementares (Estrutura/ mão de obra):", style: "strong", spacing: { after: 200 } }),
-    new Table({
-    columnWidths: [8000, 2000],
-    rows: [
-    createLineItemRow('Valor materiais / instalação', formatCurrency(totalInstalacao)),
-    ],
-    }),
-    new Paragraph({ text: "", spacing: { after: 400 } }),
-    new Table({
-    columnWidths: [8000, 2000],
-    rows: [
-    createLineItemRow('Valor total do projeto', formatCurrency(dados.total)),
-    ],
-    }),
-    ],
-    }],
-    styles: {
-    paragraph: { run: { size: "22pt" } }, // 11pt
-    strong: { run: { bold: true, size: "22pt" } },
-    }
+      styles: {
+        default: { document: { run: { font: 'Calibri', size: 22, color: '202923' } } },
+        paragraphStyles: [
+          { id: 'Heading1', name: 'Heading 1', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { font: 'Georgia', size: 64, color: '202923' } },
+          { id: 'Heading2', name: 'Heading 2', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { size: 28, bold: true, color: '627458' } }
+        ]
+      },
+      sections: [{
+        properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1000, right: 1000, bottom: 1000, left: 1000 } } },
+        children: [
+          paragrafo('Proposta comercial'),
+          paragrafo('Proposta comercial.', { heading: HeadingLevel.HEADING_1 }),
+          paragrafo('Preparada para ' + texto('cliente-nome')),
+          titulo('O seu projeto'), paragrafo(texto('objeto-proposta')),
+          titulo('Composição do projeto'), ...itens,
+          titulo('Investimento total'),
+          new Paragraph({ children: [new TextRun({ text: texto('total-geral'), bold: true, size: 40, color: '202923' })] }),
+          paragrafo('Condições comerciais.', { heading: HeadingLevel.HEADING_1, pageBreakBefore: true }),
+          titulo('Condições comerciais'), ...condicoes,
+          titulo('Prazo de entrega'), paragrafo('30 dias após a assinatura do contrato e pagamento da entrada.'),
+          titulo('Garantia'), paragrafo('24 meses'),
+          titulo('Execução e instalação'), paragrafo(texto('texto-instalacao')),
+          paragrafo(texto('texto-validade')),
+          titulo('Responsável pela proposta'), paragrafo(texto('vendedor-nome')),
+          paragrafo(texto('vendedor-cargo')), paragrafo(texto('vendedor-fone')),
+          paragrafo(texto('data-emissao'))
+        ]
+      }]
     });
 
     Packer.toBlob(doc).then(blob => {
