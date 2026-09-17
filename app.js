@@ -1097,26 +1097,64 @@ function preencherProposta() {
     document.getElementById('data-emissao').textContent = `Porto Belo, ${dataFormatada}`;
 }
 
-async function gerarPDF() {
+window.gerarPDF = async function gerarPDF() {
+    const botao = document.getElementById('btnSalvarPDF');
     const elementoParaImprimir = document.getElementById('conteudo-proposta');
-    const paginas = elementoParaImprimir.querySelectorAll('section.print-page');
-    const docDefinition = {
-    pageSize: { width: 595.28, height: 841.89 }, // A4 vertical (portrait)
-    pageOrientation: 'portrait',
-    pageMargins: [0, 0, 0, 0],
-    content: []
-    };
-    for (let i = 0; i < paginas.length; i++) {
-    // Aumenta o scale para melhorar a nitidez (ex: 3)
-    const canvas = await html2canvas(paginas[i], { scale: 3 });
-    const imgData = canvas.toDataURL('image/jpeg', 1.0); // qualidade máxima
-    if (i > 0) {
-    docDefinition.content.push({ text: '', pageBreak: 'before' });
+    const paginas = elementoParaImprimir?.querySelectorAll('section.print-page');
+
+    if (typeof window.html2canvas !== 'function' || !window.pdfMake?.createPdf) {
+      alert('Não foi possível carregar as bibliotecas necessárias para gerar o PDF. Atualize a página e tente novamente.');
+      return;
     }
-    docDefinition.content.push({ image: imgData, width: 595.28 }); // largura A4 vertical
+    if (!paginas || paginas.length === 0) {
+      alert('Não há conteúdo de proposta para gerar o PDF.');
+      return;
     }
-    pdfMake.createPdf(docDefinition).download('proposta.pdf');
-}
+
+    const textoOriginal = botao?.textContent;
+    if (botao) {
+      botao.disabled = true;
+      botao.textContent = 'Gerando PDF...';
+    }
+
+    try {
+      await Promise.all(Array.from(elementoParaImprimir.querySelectorAll('img')).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+          img.addEventListener('load', resolve, { once: true });
+          img.addEventListener('error', resolve, { once: true });
+        });
+      }));
+
+      const docDefinition = {
+        pageSize: { width: 595.28, height: 841.89 },
+        pageOrientation: 'portrait',
+        pageMargins: [0, 0, 0, 0],
+        content: []
+      };
+
+      for (let i = 0; i < paginas.length; i++) {
+        const canvas = await window.html2canvas(paginas[i], {
+          scale: 4,
+          backgroundColor: '#ffffff',
+          useCORS: true,
+          logging: false
+        });
+        if (i > 0) docDefinition.content.push({ text: '', pageBreak: 'before' });
+        docDefinition.content.push({ image: canvas.toDataURL('image/png'), width: 595.28 });
+      }
+
+      window.pdfMake.createPdf(docDefinition).download('proposta.pdf');
+    } catch (error) {
+      console.error('Falha ao gerar PDF:', error);
+      alert(`Não foi possível gerar o PDF: ${error.message || 'erro desconhecido'}`);
+    } finally {
+      if (botao) {
+        botao.disabled = false;
+        botao.textContent = textoOriginal || 'Salvar PDF';
+      }
+    }
+};
 
 function gerarWord() {
     if (!window.docx) {
@@ -1307,10 +1345,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (moduloAtual === 'proposta') {
-      preencherProposta();
       const btnSalvarPDF = document.getElementById('btnSalvarPDF');
       const btnSalvarWord = document.getElementById('btnSalvarWord');
-      if (btnSalvarPDF) btnSalvarPDF.addEventListener('click', gerarPDF);
+      if (btnSalvarPDF) btnSalvarPDF.addEventListener('click', window.gerarPDF, { once: false });
+      try {
+        preencherProposta();
+      } catch (error) {
+        console.error('Falha ao preencher a proposta:', error);
+        alert(`A proposta foi aberta, mas houve um erro ao carregar os dados: ${error.message || 'erro desconhecido'}`);
+      }
       if (btnSalvarWord) btnSalvarWord.addEventListener('click', gerarWord);
     }
     else if (moduloAtual === 'accept-invite') {
