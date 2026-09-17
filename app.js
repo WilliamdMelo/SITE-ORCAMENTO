@@ -1059,21 +1059,7 @@ function preencherProposta() {
     // Condições de pagamento com base no total arredondado
     const totalProjeto = totalGeralExibido;
 
-    // Opção 1: À vista com 5% de desconto (1+1)
-    const valorComDesconto = totalProjeto * 0.95;
-    const parcelaAVista = valorComDesconto / 2;
-    const condicao1 = `A vista 5% desconto (1+1): ${formatCurrency(parcelaAVista)} + 1 de ${formatCurrency(parcelaAVista)}`;
-
-    // Opção 2: 40% de entrada + 6x
-    const entrada40 = totalProjeto * 0.40;
-    const saldo6x = totalProjeto * 0.60;
-    const parcela6x = saldo6x / 6;
-    const condicao2 = `40% de entrada e saldo em 6x (boleto ou cartão) sem juros: ${formatCurrency(entrada40)} + 6x ${formatCurrency(parcela6x)}`;
-
-    // Opção 3: 12x no cartão com 8% de juros
-    const valorComJuros = totalProjeto * 1.12;
-    const parcela12x = valorComJuros / 12;
-    const condicao3 = `12x de ${formatCurrency(parcela12x)} no cartão de crédito`;
+    
 
     const condicoesContainer = document.getElementById('lista-condicoes');
     if (condicoesContainer) {
