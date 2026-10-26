@@ -7,8 +7,8 @@
 
   <style>
     :root {
-      --page-width: 210mm;
-      --page-height: 297mm;
+      --page-width: 297mm;
+      --page-height: 210mm;
       --page-padding: 20mm;
       --text-color: #111;
       --muted: #666;
@@ -97,7 +97,7 @@
     section.print-page.img-page { padding: 0 !important; position: relative; overflow: hidden; }
     section.print-page.img-page > img { width: 100%; height: 100%; object-fit: cover; display: block; position: absolute; top: 0; left: 0; }
     @media print {
-      section.print-page.img-page { box-shadow: none; border: none; page-break-after: always; margin: 0; width: 210mm; min-height: 297mm; padding: 0 !important; }
+      section.print-page.img-page { box-shadow: none; border: none; page-break-after: always; margin: 0; width: 297mm; min-height: 210mm; padding: 0 !important; }
       section.print-page.img-page > img { width: 100%; height: 100%; object-fit: cover; }
     }
     @media screen and (max-width: 1200px) {
@@ -109,16 +109,17 @@
       body { background: white; }
       #toolbar { display: none !important; }
       #conteudo-proposta { margin: 0; }
-      section.print-page { box-shadow: none; border: none; page-break-after: always; margin: 0; width: 210mm; min-height: 297mm; padding: 20mm; }
+      section.print-page { box-shadow: none; border: none; page-break-after: always; margin: 0; width: 297mm; min-height: 210mm; padding: 20mm; }
       section.print-page.no-break-print {
         break-inside: avoid;
         page-break-inside: avoid;
-        min-height: 297mm !important;
-        height: 297mm !important;
-        max-height: 297mm !important;
+        min-height: 210mm !important;
+        height: 210mm !important;
+        max-height: 210mm !important;
         overflow: visible !important;
       }
     }
+    @page { size: A4 landscape; margin: 0; }
   </style>
 </head>
 

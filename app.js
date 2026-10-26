@@ -1126,8 +1126,8 @@ async function gerarPDF() {
       }));
 
       const docDefinition = {
-        pageSize: { width: 595.28, height: 841.89 },
-        pageOrientation: 'portrait',
+        pageSize: { width: 841.89, height: 595.28 },
+        pageOrientation: 'landscape',
         pageMargins: [0, 0, 0, 0],
         content: []
       };
@@ -1139,7 +1139,7 @@ async function gerarPDF() {
           onclone: doc => {
             const conteudo = doc.getElementById('conteudo-proposta');
             if (conteudo) {
-              conteudo.style.width = '210mm';
+              conteudo.style.width = '297mm';
               conteudo.style.maxWidth = 'none';
               conteudo.style.margin = '0';
             }
@@ -1149,7 +1149,7 @@ async function gerarPDF() {
           logging: false
         });
         if (i > 0) docDefinition.content.push({ text: '', pageBreak: 'before' });
-        docDefinition.content.push({ image: canvas.toDataURL('image/png'), fit: [595.28, 841.89] });
+        docDefinition.content.push({ image: canvas.toDataURL('image/png'), fit: [841.89, 595.28] });
       }
 
       window.pdfMake.createPdf(docDefinition).download('proposta.pdf');
