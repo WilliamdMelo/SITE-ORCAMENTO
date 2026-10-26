@@ -13,7 +13,10 @@ const CONFIG = {
 };
 
 const vendedores = [
-    { id: 'Paulo', nome: 'Marcelo Augusto', cargo: 'Consultor Comercial', fone: '(47) 99999-9218', email: 'marceloaugusto4211@gmail.com' }
+    { id: 'Paulo', nome: 'Paulo', cargo: '', fone: '', email: '' },
+    { id: 'William', nome: 'William', cargo: '', fone: '', email: '' },
+    { id: 'Patric', nome: 'Patric', cargo: '', fone: '', email: '' },
+    { id: 'Patricia', nome: 'Patricia', cargo: '', fone: '', email: '' }
 ];
 
 let painelSelecionado = null;
