@@ -1134,13 +1134,22 @@ async function gerarPDF() {
 
       for (let i = 0; i < paginas.length; i++) {
         const canvas = await window.html2canvas(paginas[i], {
-          scale: 4,
+          scale: 3,
+          windowWidth: 1280,
+          onclone: doc => {
+            const conteudo = doc.getElementById('conteudo-proposta');
+            if (conteudo) {
+              conteudo.style.width = '210mm';
+              conteudo.style.maxWidth = 'none';
+              conteudo.style.margin = '0';
+            }
+          },
           backgroundColor: '#ffffff',
           useCORS: true,
           logging: false
         });
         if (i > 0) docDefinition.content.push({ text: '', pageBreak: 'before' });
-        docDefinition.content.push({ image: canvas.toDataURL('image/png'), width: 595.28 });
+        docDefinition.content.push({ image: canvas.toDataURL('image/png'), fit: [595.28, 841.89] });
       }
 
       window.pdfMake.createPdf(docDefinition).download('proposta.pdf');
