@@ -532,17 +532,17 @@ function calcularOrcamento(modulo) {
   prepararCamposDeValorEditavel();
   const resultadoDiv = document.getElementById("resultado");
   if (!painelSelecionado) {
-  if (!window.__carregandoHistorico) {
-    alert("Selecione um modelo de painel.");
+    const sel = document.getElementById('modeloPainel');
+    if (sel && sel.value) {
+      painelSelecionado = produtosPainel.find(p => p.nome === sel.value) || null;
+    }
   }
   if (!painelSelecionado) {
-  const sel = document.getElementById('modeloPainel');
-  if (sel && sel.value) {
-    painelSelecionado = produtosPainel.find(p => p.nome === sel.value) || null;
+    if (!window.__carregandoHistorico) {
+      alert("Selecione um modelo de painel.");
+    }
+    return;
   }
-}
-  return;
-}
   let largura, altura;
   if (modulo === 'totem') {
     largura = parseFloat(document.getElementById("larguraDisplay").value);
