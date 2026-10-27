@@ -368,9 +368,14 @@ function configurarOpcoesProposta() {
 function atualizarAjusteTotalProposta() {
   if (!ultimoResultado) return;
   const tipo = document.getElementById('tipoAjusteTotal')?.value || 'desconto';
+  const unidade = document.getElementById('unidadeAjusteTotal')?.value || 'reais';
   const valor = Number.parseFloat(document.getElementById('valorAjusteTotal')?.value) || 0;
-  const ajuste = tipo === 'desconto' ? -Math.abs(valor) : Math.abs(valor);
   const totalBase = Number(ultimoResultado.totalSemAjuste ?? ultimoResultado.total) || 0;
+  const valorCalculado = unidade === 'percentual' ? totalBase * (Math.abs(valor) / 100) : Math.abs(valor);
+  const ajuste = tipo === 'desconto' ? -valorCalculado : valorCalculado;
+  ultimoResultado.ajusteTipo = tipo;
+  ultimoResultado.ajusteUnidade = unidade;
+  ultimoResultado.ajusteValor = Math.abs(valor);
   ultimoResultado.ajusteTotal = ajuste;
   ultimoResultado.total = Math.max(0, Math.round((totalBase + ajuste) * 100) / 100);
   const totalEl = document.getElementById('resultado-total');
@@ -828,14 +833,20 @@ resultadoHTML += `<li><strong>Controladora:</strong> ${formatCurrency(custoContr
 resultadoHTML += `</ul>
   <div class="mt-4 pt-4 border-t border-gray-200">
     <p class="text-sm font-semibold text-gray-700 mb-2">Ajuste final do projeto</p>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
       <label class="block text-sm text-gray-700">Tipo
         <select id="tipoAjusteTotal" class="input mt-1">
           <option value="desconto">Desconto</option>
           <option value="acrescimo">Acréscimo</option>
         </select>
       </label>
-      <label class="block text-sm text-gray-700">Valor (R$)
+      <label class="block text-sm text-gray-700">Unidade
+        <select id="unidadeAjusteTotal" class="input mt-1">
+          <option value="reais">R$</option>
+          <option value="percentual">%</option>
+        </select>
+      </label>
+      <label class="block text-sm text-gray-700">Valor do ajuste
         <input id="valorAjusteTotal" type="number" min="0" step="0.01" value="0" class="input mt-1" />
       </label>
     </div>
@@ -844,6 +855,7 @@ resultadoHTML += `</ul>
 resultadoDiv.innerHTML = resultadoHTML;
 resultadoDiv.classList.remove('hidden');
 document.getElementById('tipoAjusteTotal')?.addEventListener('change', atualizarAjusteTotalProposta);
+document.getElementById('unidadeAjusteTotal')?.addEventListener('change', atualizarAjusteTotalProposta);
 document.getElementById('valorAjusteTotal')?.addEventListener('input', atualizarAjusteTotalProposta);
 document.getElementById('container-gerar-proposta')?.classList.remove('hidden');
 }
