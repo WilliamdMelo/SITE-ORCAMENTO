@@ -365,6 +365,18 @@ function configurarOpcoesProposta() {
   container.insertBefore(opcoes, botao);
 }
 
+function atualizarAjusteTotalProposta() {
+  if (!ultimoResultado) return;
+  const tipo = document.getElementById('tipoAjusteTotal')?.value || 'desconto';
+  const valor = Number.parseFloat(document.getElementById('valorAjusteTotal')?.value) || 0;
+  const ajuste = tipo === 'desconto' ? -Math.abs(valor) : Math.abs(valor);
+  const totalBase = Number(ultimoResultado.totalSemAjuste ?? ultimoResultado.total) || 0;
+  ultimoResultado.ajusteTotal = ajuste;
+  ultimoResultado.total = Math.max(0, Math.round((totalBase + ajuste) * 100) / 100);
+  const totalEl = document.getElementById('resultado-total');
+  if (totalEl) totalEl.textContent = `TOTAL: ${formatCurrency(ultimoResultado.total)}`;
+}
+
 function carregarModelos() {
   const select = document.getElementById("modeloPainel");
   if (!select) return;
@@ -784,7 +796,7 @@ custoBorda = obterValorAjustado('ajusteBorda', custoBorda);
 const total = custoPainel + custoControladora + custoEstrutura + custoEletrica + custoInstalacao + custoPilar + custoSapata + custoACM + custoBorda;
 
 ultimoResultado = { 
-  total, medidaFinal, painel: painelSelecionado, qtd, valorUnitario, 
+  total, totalSemAjuste: total, ajusteTotal: 0, medidaFinal, painel: painelSelecionado, qtd, valorUnitario,
   custoPainel, custoControladora, custoEstrutura, custoEletrica, custoInstalacao, 
   custoPilar, custoSapata, custoACM, totalACM, tipoEntrega, 
   isDuplaFace: (multiplicaPainel > 1), controladoraTexto: optionSelecionadaCtrl.text, 
@@ -813,9 +825,26 @@ if (custoPilar > 0) resultadoHTML += `<li><strong>Pilar:</strong> ${formatCurren
 if (custoSapata > 0) resultadoHTML += `<li><strong>Sapata:</strong> ${formatCurrency(custoSapata)}</li>`;
 resultadoHTML += `<li><strong>${tipoEntrega}:</strong> ${formatCurrency(custoInstalacao)}</li>`;
 resultadoHTML += `<li><strong>Controladora:</strong> ${formatCurrency(custoControladora)}</li>`;
-resultadoHTML += `</ul><p class="mt-4 pt-2 border-t text-lg font-bold text-indigo-700">TOTAL: ${formatCurrency(total)}</p>`;
+resultadoHTML += `</ul>
+  <div class="mt-4 pt-4 border-t border-gray-200">
+    <p class="text-sm font-semibold text-gray-700 mb-2">Ajuste final do projeto</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <label class="block text-sm text-gray-700">Tipo
+        <select id="tipoAjusteTotal" class="input mt-1">
+          <option value="desconto">Desconto</option>
+          <option value="acrescimo">Acréscimo</option>
+        </select>
+      </label>
+      <label class="block text-sm text-gray-700">Valor (R$)
+        <input id="valorAjusteTotal" type="number" min="0" step="0.01" value="0" class="input mt-1" />
+      </label>
+    </div>
+    <p id="resultado-total" class="mt-4 pt-2 border-t text-lg font-bold text-indigo-700">TOTAL: ${formatCurrency(total)}</p>
+  </div>`;
 resultadoDiv.innerHTML = resultadoHTML;
 resultadoDiv.classList.remove('hidden');
+document.getElementById('tipoAjusteTotal')?.addEventListener('change', atualizarAjusteTotalProposta);
+document.getElementById('valorAjusteTotal')?.addEventListener('input', atualizarAjusteTotalProposta);
 document.getElementById('container-gerar-proposta')?.classList.remove('hidden');
 }
 
@@ -900,6 +929,7 @@ function preencherProposta() {
     });
 
     // Total original antes do arredondamento (equipamentos + opcionais)
+    const ajusteTotal = round2(Number(dados.ajusteTotal) || 0);
     const totalOriginal = round2(equipamentosTotal + somaOpcionais);
 
     // Arredondar para a próxima centena
@@ -913,6 +943,10 @@ function preencherProposta() {
 
     // Recalcular soma de opcionais após ajuste
     somaOpcionais = opcionaisKeys.reduce((acc,k) => round2(acc + opcionais[k]), 0);
+    if (ajusteTotal !== 0) {
+      opcionais.custoInstalacao = round2(opcionais.custoInstalacao + ajusteTotal);
+      somaOpcionais = opcionaisKeys.reduce((acc,k) => round2(acc + opcionais[k]), 0);
+    }
 
     // Totais finais exibidos
     const totalInstalacaoExibido = somaOpcionais;
