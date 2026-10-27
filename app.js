@@ -1213,7 +1213,8 @@ async function gerarPDF() {
 
       for (let i = 0; i < paginas.length; i++) {
         const canvas = await window.html2canvas(paginas[i], {
-          scale: 3,
+          // A escala moderada e JPEG evitam que as páginas com imagens gerem PDFs enormes.
+          scale: 1.5,
           windowWidth: 1280,
           onclone: doc => {
             const conteudo = doc.getElementById('conteudo-proposta');
@@ -1228,10 +1229,24 @@ async function gerarPDF() {
           logging: false
         });
         if (i > 0) docDefinition.content.push({ text: '', pageBreak: 'before' });
-        docDefinition.content.push({ image: canvas.toDataURL('image/png'), fit: [841.89, 595.28] });
+        docDefinition.content.push({ image: canvas.toDataURL('image/jpeg', 0.62), fit: [841.89, 595.28] });
       }
 
-      window.pdfMake.createPdf(docDefinition).download('proposta.pdf');
+      const pdf = window.pdfMake.createPdf(docDefinition);
+      pdf.getBlob(blob => {
+        const limiteBytes = 5 * 1024 * 1024;
+        if (blob.size > limiteBytes) {
+          alert('Não foi possível manter o PDF abaixo de 5 MB. Reduza as imagens e tente novamente.');
+          return;
+        }
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'proposta.pdf';
+        document.body.appendChild(link);
+        link.click();
+        URL.revokeObjectURL(link.href);
+        link.remove();
+      });
     } catch (error) {
       console.error('Falha ao gerar PDF:', error);
       alert(`Não foi possível gerar o PDF: ${error.message || 'erro desconhecido'}`);
