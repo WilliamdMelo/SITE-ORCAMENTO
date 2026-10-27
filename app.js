@@ -1312,7 +1312,7 @@ function gerarWord() {
     const doc = new Document({
     sections: [{
     children: [
-    new Paragraph({ text: "Proposta comercial", heading: HeadingLevel.HEADING_1, spacing: { after: 400 } }),
+    new Paragraph({ text: "Proposta Comercial", heading: HeadingLevel.HEADING_1, spacing: { after: 400 } }),
     new Paragraph({ text: `1 – OBJETO: Painel LED ${dados.painel?.resolucao || ''} ${dados.painel?.ambiente || ''} ${dados.medidaFinal || ''}`, spacing: { after: 200 } }),
     new Paragraph({ text: "Itens inclusos (Equipamentos):", style: "strong", spacing: { after: 200 } }),
     new Table({
