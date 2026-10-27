@@ -94,6 +94,8 @@
     .date-location { margin-top: 20px; font-size: 11pt; }
     .technical-details { font-size: 9pt; color: var(--muted); margin-left: 20px; font-style: italic; }
     .proposal-logo { position: absolute; top: 16mm; right: 18mm; width: 34mm; height: auto; object-fit: contain; }
+    /* Reserva espaço para o logotipo no cabeçalho da página de informações. */
+    section.print-page.proposal-details-page { padding-top: 34mm; }
     .full-page-img { width: 100%; height: 100%; object-fit: cover; display: block; position: absolute; top: 0; left: 0; z-index: 1; }
     section.print-page.img-page { padding: 0 !important; position: relative; overflow: hidden; }
     section.print-page.img-page > img { width: 100%; height: 100%; object-fit: cover; display: block; position: absolute; top: 0; left: 0; }
@@ -185,7 +187,7 @@
     </section>
 
     <!-- Página 2 -->
-    <section class="print-page">
+    <section class="print-page proposal-details-page">
       <img class="proposal-logo" src="./img/logo1.PNG" alt="" aria-hidden="true" />
       <div class="payment-conditions" id="bloco-condicoes-pagamento">
         <div class="section-title">Condições de pagamento:</div>
