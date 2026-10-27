@@ -1,5 +1,4 @@
 const CONFIG = {
-  precoEletricaM2: 78,
   taxaFixaInstalacao: 250,
   precoPorKm: 2.5,
   custoHoraViagem: 46.87,
@@ -445,7 +444,6 @@ function prepararCamposDeValorEditavel() {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <label class="block text-sm font-medium text-gray-700">Controladora (R$)<input id="ajusteControladora" type="number" min="0" step="0.01" class="input mt-1"></label>
       <label class="block text-sm font-medium text-gray-700">Estrutura unitária (R$)<input id="ajusteEstrutura" type="number" min="0" step="0.01" class="input mt-1"></label>
-      <label class="block text-sm font-medium text-gray-700">Elétrica (R$)<input id="ajusteEletrica" type="number" min="0" step="0.01" class="input mt-1"></label>
       <label class="block text-sm font-medium text-gray-700">Instalação ou frete (R$)<input id="ajusteInstalacao" type="number" min="0" step="0.01" class="input mt-1"></label>
       <label class="block text-sm font-medium text-gray-700">ACM (R$)<input id="ajusteACM" type="number" min="0" step="0.01" class="input mt-1"></label>
       <label class="block text-sm font-medium text-gray-700">Pilar (R$)<input id="ajustePilar" type="number" min="0" step="0.01" class="input mt-1"></label>
@@ -558,7 +556,7 @@ function preencherFormulario(dados) {
     }
     }
     document.getElementById('modeloPainel')?.dispatchEvent(new Event('change'));
-    ['valorUnitario', 'ajusteControladora', 'ajusteEstrutura', 'ajusteEletrica', 'ajusteInstalacao', 'ajusteACM', 'ajustePilar', 'ajusteSapata', 'ajusteBorda'].forEach(id => {
+    ['valorUnitario', 'ajusteControladora', 'ajusteEstrutura', 'ajusteInstalacao', 'ajusteACM', 'ajustePilar', 'ajusteSapata', 'ajusteBorda'].forEach(id => {
       const element = document.getElementById(id);
       if (element && inputs[id] !== undefined && inputs[id] !== '') {
         element.value = inputs[id];
@@ -602,7 +600,7 @@ function calcularOrcamento(modulo) {
   let custoPainel = qtd * valorUnitario;
   let custoControladora = parseFloat(optionSelecionadaCtrl.dataset.valor) || 0;
   let custoEstrutura = 0;
-  let custoEletrica = 0, custoInstalacao = 0;
+  let custoInstalacao = 0;
   let custoPilar = 0, custoSapata = 0, custoACM = 0, totalACM = 0;
   let custoBorda = 0, metrosBorda = 0;
   let tipoEntrega = 'Instalação';
@@ -642,14 +640,6 @@ function calcularOrcamento(modulo) {
     case '0.50x0.50': quantidadeDeEstruturas = qtd / 4; break; // 0.25 estrutura por gabinete
     default: quantidadeDeEstruturas = qtd;
     }
-  }
-
-  // Custos base por módulo
-  switch (modulo) {
-    case 'fachada': case 'pilar': case 'totem': case 'vitrine':
-    custoEletrica = qtd * CONFIG.precoEletricaM2;
-    break;
-    case 'parede': break;
   }
 
   if (modulo === 'pilar') {
@@ -724,7 +714,6 @@ const tipoFace = document.querySelector('input[name="tipoFace"]:checked').value;
 
 // Definir multiplicadores e valores de estrutura por tipo de face
 let multiplicaPainel = 1;
-let multiplicaEletrica = 1;
 let multiplicaControladora = 1;
 let multiplicaEstrutura = 1;
 let valorEstruturaUnit = 1360; // default
@@ -732,7 +721,6 @@ let valorEstruturaUnit = 1360; // default
 switch (tipoFace) {
   case 'uma':
   multiplicaPainel = 1;
-  multiplicaEletrica = 1;
   multiplicaControladora = 1;
   multiplicaEstrutura = 1;
   valorEstruturaUnit = 1;
@@ -740,7 +728,6 @@ switch (tipoFace) {
 
   case 'dupla':
   multiplicaPainel = 2;
-  multiplicaEletrica = 2;
   multiplicaControladora = 1;
   multiplicaEstrutura = 1;
   valorEstruturaUnit = 1;
@@ -748,7 +735,6 @@ switch (tipoFace) {
 
   case 'dupla_angulo':
   multiplicaPainel = 2;
-  multiplicaEletrica = 2;
   multiplicaControladora = 1;
   multiplicaEstrutura = 2;
   valorEstruturaUnit = 1;
@@ -756,7 +742,6 @@ switch (tipoFace) {
 
   case 'dupla_lona':
   multiplicaPainel = 1;
-  multiplicaEletrica = 1;
   multiplicaControladora = 1;
   multiplicaEstrutura = 1;
   valorEstruturaUnit = 1;
@@ -764,7 +749,6 @@ switch (tipoFace) {
 
   case 'dupla_angulo_lona':
   multiplicaPainel = 1;
-  multiplicaEletrica = 1;
   multiplicaControladora = 1;
   multiplicaEstrutura = 1;
   valorEstruturaUnit = 1;
@@ -773,7 +757,6 @@ switch (tipoFace) {
 
 // Aplicar multiplicadores
 custoPainel *= multiplicaPainel;
-custoEletrica *= multiplicaEletrica;
 custoControladora *= multiplicaControladora;
 
 // Calcular estrutura: quantidadeDeEstruturas × multiplicaEstrutura × valorEstruturaUnit
@@ -791,18 +774,17 @@ custoPainel = obterValorAjustado('valorUnitario', valorUnitario) * qtd * multipl
 custoControladora = obterValorAjustado('ajusteControladora', custoControladora);
 const estruturaUnitarioFinal = obterValorAjustado('ajusteEstrutura', valorEstruturaUnit);
 custoEstrutura = modulo === 'parede' ? 0 : quantidadeDeEstruturas * multiplicaEstrutura * estruturaUnitarioFinal;
-custoEletrica = obterValorAjustado('ajusteEletrica', custoEletrica);
 custoInstalacao = obterValorAjustado('ajusteInstalacao', custoInstalacao);
 custoACM = obterValorAjustado('ajusteACM', custoACM);
 custoPilar = obterValorAjustado('ajustePilar', custoPilar);
 custoSapata = obterValorAjustado('ajusteSapata', custoSapata);
 custoBorda = obterValorAjustado('ajusteBorda', custoBorda);
 
-const total = custoPainel + custoControladora + custoEstrutura + custoEletrica + custoInstalacao + custoPilar + custoSapata + custoACM + custoBorda;
+const total = custoPainel + custoControladora + custoEstrutura + custoInstalacao + custoPilar + custoSapata + custoACM + custoBorda;
 
 ultimoResultado = { 
   total, totalSemAjuste: total, ajusteTotal: 0, medidaFinal, painel: painelSelecionado, qtd, valorUnitario,
-  custoPainel, custoControladora, custoEstrutura, custoEletrica, custoInstalacao, 
+  custoPainel, custoControladora, custoEstrutura, custoInstalacao,
   custoPilar, custoSapata, custoACM, totalACM, tipoEntrega, 
   isDuplaFace: (multiplicaPainel > 1), controladoraTexto: optionSelecionadaCtrl.text, 
   vendedorId, modulo, inputs: getFormInputs(document.getElementById('orcamento-form')), 
@@ -820,7 +802,6 @@ if (tipoFace !== 'uma') {
 
 resultadoHTML += `<li><strong>Painel:</strong> ${formatCurrency(custoPainel)} (${medidaFinal})</li>`;
 if (custoEstrutura > 0) resultadoHTML += `<li><strong>Estrutura:</strong> ${formatCurrency(custoEstrutura)} (${quantidadeDeEstruturas * multiplicaEstrutura} × ${formatCurrency(estruturaUnitarioFinal)})</li>`;
-if (custoEletrica > 0) resultadoHTML += `<li><strong>Elétrica:</strong> ${formatCurrency(custoEletrica)}</li>`;
 if (custoACM > 0) resultadoHTML += `<li><strong>Revestimento ACM (${totalACM.toFixed(2)} m²):</strong> ${formatCurrency(custoACM)}</li>`;
 if (custoBorda > 0) {
   const tipoBordaText = document.getElementById('tipoBorda')?.value || '15x10';
@@ -932,7 +913,7 @@ function preencherProposta() {
     const equipamentosTotal = round2(totalPainel + totalControladora);
 
     // Agrupa opcionais vindos dos dados (valores originais do orçamento)
-    const opcionaisKeys = ['custoEstrutura','custoEletrica','custoInstalacao','custoPilar','custoSapata','custoACM','custoBorda'];
+    const opcionaisKeys = ['custoEstrutura','custoInstalacao','custoPilar','custoSapata','custoACM','custoBorda'];
     const opcionais = {};
     let somaOpcionais = 0;
     opcionaisKeys.forEach(k => {
@@ -953,29 +934,47 @@ function preencherProposta() {
     // Somar essa diferença ao item 'custoInstalacao' (itens opcionais)
     opcionais['custoInstalacao'] = round2(opcionais['custoInstalacao'] + diferencaArredondamento);
 
-    // Recalcular soma de opcionais após ajuste
+    // Distribuir o desconto/acréscimo proporcionalmente entre todos os itens.
     somaOpcionais = opcionaisKeys.reduce((acc,k) => round2(acc + opcionais[k]), 0);
-    if (ajusteTotal !== 0) {
-      opcionais.custoInstalacao = round2(opcionais.custoInstalacao + ajusteTotal);
-      somaOpcionais = opcionaisKeys.reduce((acc,k) => round2(acc + opcionais[k]), 0);
+    const itensBase = {
+      custoPainel: totalPainel,
+      custoControladora: totalControladora,
+      ...opcionais
+    };
+    const totalBaseItens = round2(Object.values(itensBase).reduce((acc, valor) => acc + valor, 0));
+    const totalComAjuste = Math.max(0, round2(totalBaseItens + ajusteTotal));
+    const fatorAjuste = totalBaseItens > 0 ? totalComAjuste / totalBaseItens : 1;
+    const itensAjustados = {};
+    Object.entries(itensBase).forEach(([chave, valor]) => {
+      itensAjustados[chave] = round2(valor * fatorAjuste);
+    });
+
+    // Corrige a diferença de centavos no último item para preservar o total exato.
+    const somaAjustadaInicial = round2(Object.values(itensAjustados).reduce((acc, valor) => acc + valor, 0));
+    const ultimaChave = Object.keys(itensAjustados).reverse().find(chave => itensAjustados[chave] !== 0);
+    if (ultimaChave) {
+      itensAjustados[ultimaChave] = round2(itensAjustados[ultimaChave] + totalComAjuste - somaAjustadaInicial);
     }
+
+    const totalPainelExibido = itensAjustados.custoPainel;
+    const totalControladoraExibido = itensAjustados.custoControladora;
+    const equipamentosTotalExibido = round2(totalPainelExibido + totalControladoraExibido);
+    opcionaisKeys.forEach(k => { opcionais[k] = itensAjustados[k]; });
+    somaOpcionais = round2(opcionaisKeys.reduce((acc,k) => acc + opcionais[k], 0));
 
     // Totais finais exibidos
     const totalInstalacaoExibido = somaOpcionais;
-    const totalGeralExibido = round2(equipamentosTotal + somaOpcionais); // deve ser igual a totalArredondado
+    const totalGeralExibido = round2(equipamentosTotalExibido + somaOpcionais);
 
     // Atualiza dados ajustados para gerar PDF/Word coerente com a exibição
     const dadosAjustados = JSON.parse(JSON.stringify(dados));
     // sobrescreve os campos que mudaram (instalacao e total)
-    dadosAjustados.custoInstalacao = opcionais['custoInstalacao'];
-    dadosAjustados.custoEstrutura = opcionais['custoEstrutura'];
-    dadosAjustados.custoEletrica = opcionais['custoEletrica'];
-    dadosAjustados.custoPilar = opcionais['custoPilar'];
-    dadosAjustados.custoSapata = opcionais['custoSapata'];
-    dadosAjustados.custoACM = opcionais['custoACM'];
-    dadosAjustados.custoBorda = opcionais['custoBorda'];
+    dadosAjustados.custoPainel = totalPainelExibido;
+    dadosAjustados.custoControladora = totalControladoraExibido;
+    opcionaisKeys.forEach(k => { dadosAjustados[k] = opcionais[k]; });
     dadosAjustados.total = totalGeralExibido;
     dadosAjustados.diferencaArredondamento = diferencaArredondamento;
+    dadosAjustados.ajusteTotal = 0;
 
   if (typeof calcularLocacao === 'function') {
   const parcelasLocacao = calcularLocacao(ultimoResultado.total);
@@ -1088,7 +1087,7 @@ function preencherProposta() {
     <div class="line-item text-sm">
       <span class="label">${labelEquipamento}</span>
       <span class="dots"></span>
-      <span class="price">${formatCurrency(totalPainel)}</span>
+      <span class="price">${formatCurrency(totalPainelExibido)}</span>
     </div>
     <div class="text-xs text-gray-500 pl-4">
       (Valor por unidade fornecido no orçamento: ${formatCurrency(dados.valorUnitario || dados.valorPorMetroQuadrado || 0)})
@@ -1099,7 +1098,7 @@ function preencherProposta() {
     <div class="line-item text-sm">
       <span class="label">✓ ${dados.controladoraTexto || ''}</span>
       <span class="dots"></span>
-      <span class="price">${formatCurrency(totalControladora)}</span>
+      <span class="price">${formatCurrency(totalControladoraExibido)}</span>
     </div>
     `;
 
@@ -1109,7 +1108,6 @@ function preencherProposta() {
     // Itens de instalação (usando os valores ajustados do objeto 'opcionais')
     let instalacaoHTML = "";
     if (opcionais.custoEstrutura > 0) instalacaoHTML += `<li class="line-item"><span class="label">Estrutura metálica superior de sustentação dos gabinetes de LED;</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoEstrutura)}</span></li>`;
-    if (opcionais.custoEletrica > 0) instalacaoHTML += `<li class="line-item"><span class="label">Elétrica de instalação interna;</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoEletrica)}</span></li>`;
     if (opcionais.custoBorda > 0) instalacaoHTML += `<li class="line-item"><span class="label">Borda (${dados.inputs?.tipoBorda || ''}) — ${ (dados.metrosBorda || 0).toFixed(2) } m;</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoBorda)}</span></li>`;
     if (opcionais.custoPilar > 0) instalacaoHTML += `<li class="line-item"><span class="label">Pilar de ferro;</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoPilar)}</span></li>`;
     if (opcionais.custoSapata > 0) instalacaoHTML += `<li class="line-item"><span class="label">Sapata de concreto;</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoSapata)}</span></li>`;
@@ -1282,7 +1280,7 @@ function gerarWord() {
     const nomeFicheiro = `proposta comercial ${numeroProposta} - ${nomeVendedor}.docx`;
 
     const totalEquipamentos = (Number(dados.custoPainel) || 0) + (Number(dados.custoControladora) || 0);
-    const totalInstalacao = (Number(dados.custoEstrutura) || 0) + (Number(dados.custoEletrica) || 0) + (Number(dados.custoInstalacao) || 0) + (Number(dados.custoPilar) || 0) + (Number(dados.custoSapata) || 0) + (Number(dados.custoACM) || 0) + (Number(dados.custoBorda) || 0);
+    const totalInstalacao = (Number(dados.custoEstrutura) || 0) + (Number(dados.custoInstalacao) || 0) + (Number(dados.custoPilar) || 0) + (Number(dados.custoSapata) || 0) + (Number(dados.custoACM) || 0) + (Number(dados.custoBorda) || 0);
 
     // Helper para criar uma linha da tabela
     const createLineItemRow = (label, price) => {

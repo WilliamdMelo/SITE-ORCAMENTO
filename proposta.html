@@ -286,8 +286,7 @@
             dados.custoInstalacao = (dados.custoInstalacao || 0) + diferenca;
             dados.total = totalArredondado;
 
-            const totalInstalacao = (dados.custoEstrutura || 0) + (dados.custoEletrica || 0) +
-                                    (dados.custoInstalacao || 0) + (dados.custoPilar || 0) +
+            const totalInstalacao = (dados.custoEstrutura || 0) + (dados.custoInstalacao || 0) + (dados.custoPilar || 0) +
                                     (dados.custoSapata || 0) + (dados.custoACM || 0);
 
             document.getElementById('total-instalacao').textContent =
