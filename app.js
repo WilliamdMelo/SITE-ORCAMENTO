@@ -1089,9 +1089,6 @@ function preencherProposta() {
       <span class="dots"></span>
       <span class="price">${formatCurrency(totalPainelExibido)}</span>
     </div>
-    <div class="text-xs text-gray-500 pl-4">
-      (Valor por unidade fornecido no orçamento: ${formatCurrency(dados.valorUnitario || dados.valorPorMetroQuadrado || 0)})
-    </div>
     `;
 
     equipamentosHTML += `
