@@ -344,6 +344,27 @@ function carregarVendedores() {
     });
 }
 
+function configurarOpcoesProposta() {
+  const container = document.getElementById('container-gerar-proposta');
+  const botao = document.getElementById('btnGerarProposta');
+  if (!container || !botao || document.getElementById('opcoes-proposta')) return;
+
+  const opcoes = document.createElement('div');
+  opcoes.id = 'opcoes-proposta';
+  opcoes.className = 'mb-4 space-y-2';
+  opcoes.innerHTML = `
+    <label class="flex items-center gap-2">
+      <input type="checkbox" id="mostrarValoresCondicoes" checked />
+      <span>Incluir valores nas condições de pagamento</span>
+    </label>
+    <label class="flex items-center gap-2">
+      <input type="checkbox" id="ocultarCondicoesPagamento" />
+      <span>Ocultar condições de pagamento</span>
+    </label>
+  `;
+  container.insertBefore(opcoes, botao);
+}
+
 function carregarModelos() {
   const select = document.getElementById("modeloPainel");
   if (!select) return;
@@ -1041,13 +1062,13 @@ function preencherProposta() {
 
     // Itens de instalação (usando os valores ajustados do objeto 'opcionais')
     let instalacaoHTML = "";
-    if (opcionais.custoEstrutura > 0) instalacaoHTML += `<li class="line-item"><span class="label">✓ Estrutura metálica superior de sustentação dos gabinetes de LED;</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoEstrutura)}</span></li>`;
-    if (opcionais.custoEletrica > 0) instalacaoHTML += `<li class="line-item"><span class="label">✓ Elétrica de instalação interna;</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoEletrica)}</span></li>`;
-    if (opcionais.custoBorda > 0) instalacaoHTML += `<li class="line-item"><span class="label">✓ Borda (${dados.inputs?.tipoBorda || ''}) — ${ (dados.metrosBorda || 0).toFixed(2) } m;</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoBorda)}</span></li>`;
-    if (opcionais.custoPilar > 0) instalacaoHTML += `<li class="line-item"><span class="label">✓ Pilar de ferro;</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoPilar)}</span></li>`;
-    if (opcionais.custoSapata > 0) instalacaoHTML += `<li class="line-item"><span class="label">✓ Sapata de concreto;</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoSapata)}</span></li>`;
-    if (opcionais.custoACM > 0) instalacaoHTML += `<li class="line-item"><span class="label">✓ Revestimento em ACM (${(dados.totalACM || 0).toFixed(2)} m²);</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoACM)}</span></li>`;
-    if (opcionais.custoInstalacao > 0) instalacaoHTML += `<li class="line-item"><span class="label">✓ ${dados.tipoEntrega || 'Instalação'} / configuração e fixação no local; ${diferencaArredondamento > 0 ? `<small style="color:#666"> </small>` : ''}</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoInstalacao)}</span></li>`;
+    if (opcionais.custoEstrutura > 0) instalacaoHTML += `<li class="line-item"><span class="label">Estrutura metálica superior de sustentação dos gabinetes de LED;</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoEstrutura)}</span></li>`;
+    if (opcionais.custoEletrica > 0) instalacaoHTML += `<li class="line-item"><span class="label">Elétrica de instalação interna;</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoEletrica)}</span></li>`;
+    if (opcionais.custoBorda > 0) instalacaoHTML += `<li class="line-item"><span class="label">Borda (${dados.inputs?.tipoBorda || ''}) — ${ (dados.metrosBorda || 0).toFixed(2) } m;</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoBorda)}</span></li>`;
+    if (opcionais.custoPilar > 0) instalacaoHTML += `<li class="line-item"><span class="label">Pilar de ferro;</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoPilar)}</span></li>`;
+    if (opcionais.custoSapata > 0) instalacaoHTML += `<li class="line-item"><span class="label">Sapata de concreto;</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoSapata)}</span></li>`;
+    if (opcionais.custoACM > 0) instalacaoHTML += `<li class="line-item"><span class="label">Revestimento em ACM (${(dados.totalACM || 0).toFixed(2)} m²);</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoACM)}</span></li>`;
+    if (opcionais.custoInstalacao > 0) instalacaoHTML += `<li class="line-item"><span class="label">${dados.tipoEntrega || 'Instalação'} / configuração e fixação no local; ${diferencaArredondamento > 0 ? `<small style="color:#666"> </small>` : ''}</span><span class="dots"></span><span class="price">${formatCurrency(opcionais.custoInstalacao)}</span></li>`;
 
     document.getElementById('lista-instalacao').innerHTML = instalacaoHTML;
     document.getElementById('total-instalacao').textContent = formatCurrency(totalInstalacaoExibido);
@@ -1061,18 +1082,25 @@ function preencherProposta() {
     // Opção 1: À vista com 5% de desconto (1+1)
     const valorComDesconto = totalProjeto * 0.95;
     const parcelaAVista = valorComDesconto / 2;
-    const condicao1 = `A vista 5% desconto (1+1): ${formatCurrency(parcelaAVista)} + 1 de ${formatCurrency(parcelaAVista)}`;
+    const mostrarValoresCondicoes = dados.mostrarValoresCondicoes !== false;
+    const condicao1 = mostrarValoresCondicoes
+      ? `A vista 5% desconto (1+1): ${formatCurrency(parcelaAVista)} + 1 de ${formatCurrency(parcelaAVista)}`
+      : 'A vista, com 5% de desconto (1+1).';
 
     // Opção 2: 40% de entrada + 6x
     const entrada40 = totalProjeto * 0.40;
     const saldo6x = totalProjeto * 0.60;
     const parcela6x = saldo6x / 6;
-    const condicao2 = `40% de entrada e saldo em 6x (boleto ou cartão) sem juros: ${formatCurrency(entrada40)} + 6x ${formatCurrency(parcela6x)}`;
+    const condicao2 = mostrarValoresCondicoes
+      ? `40% de entrada e saldo em 6x (boleto ou cartão) sem juros: ${formatCurrency(entrada40)} + 6x ${formatCurrency(parcela6x)}`
+      : '40% de entrada e saldo em 6x no boleto ou cartão, sem juros.';
 
     // Opção 3: 12x no cartão com 8% de juros
     const valorComJuros = totalProjeto * 1.12;
     const parcela12x = valorComJuros / 12;
-    const condicao3 = `12x de ${formatCurrency(parcela12x)} no cartão de crédito`;
+    const condicao3 = mostrarValoresCondicoes
+      ? `12x de ${formatCurrency(parcela12x)} no cartão de crédito`
+      : '12x no cartão de crédito, com acréscimo de 8%.';
 
     const condicoesContainer = document.getElementById('lista-condicoes');
     if (condicoesContainer) {
@@ -1088,6 +1116,11 @@ function preencherProposta() {
       document.getElementById('vendedor-nome').textContent = vendedor.nome;
       document.getElementById('vendedor-cargo').textContent = vendedor.cargo;
       document.getElementById('vendedor-fone').textContent = vendedor.fone;
+    }
+
+    const blocoCondicoes = document.getElementById('bloco-condicoes-pagamento');
+    if (blocoCondicoes) {
+      blocoCondicoes.style.display = dados.ocultarCondicoesPagamento === true ? 'none' : '';
     }
 
     // Data
@@ -1455,6 +1488,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       formInputs.forEach(input => input.addEventListener('change', hideResultOnInputChange));
       const btnGerarProposta = document.getElementById('btnGerarProposta');
       if (btnGerarProposta) {
+      configurarOpcoesProposta();
       btnGerarProposta.addEventListener('click', async () => {
       if (!ultimoResultado) {
       alert("Calcule um orçamento antes de gerar a proposta.");
@@ -1474,17 +1508,25 @@ document.addEventListener('DOMContentLoaded', async () => {
       const vendedorNome = vendedor ? vendedor.nome : 'Geral';
       const tituloProposta = `${vendedorNome} - ${clienteNome}`;
 
+      const mostrarValoresCondicoes = document.getElementById('mostrarValoresCondicoes')?.checked !== false;
+      const ocultarCondicoesPagamento = document.getElementById('ocultarCondicoesPagamento')?.checked === true;
+      const dadosProposta = {
+        ...ultimoResultado,
+        mostrarValoresCondicoes,
+        ocultarCondicoesPagamento,
+      };
+
       const supabase = getSupabaseClient();
       const { error } = await supabase
       .from('proposals')
       .insert([{
         user_id: activeSession.user.id,
         title: tituloProposta,
-        data: ultimoResultado
+        data: dadosProposta
       }]);
       if (error) throw error;
 
-      localStorage.setItem('dadosProposta', JSON.stringify(ultimoResultado));
+      localStorage.setItem('dadosProposta', JSON.stringify(dadosProposta));
       window.location.href = MODULOS_EM_SUBPASTA.includes(moduloAtual) ? '../proposta.html' : 'proposta.html';
       } catch (error) {
       alert(error.message || 'Falha ao salvar a proposta.');
