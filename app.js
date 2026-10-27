@@ -1213,8 +1213,8 @@ async function gerarPDF() {
 
       for (let i = 0; i < paginas.length; i++) {
         const canvas = await window.html2canvas(paginas[i], {
-          // A escala moderada e JPEG evitam que as páginas com imagens gerem PDFs enormes.
-          scale: 1.5,
+          // Mantém texto e detalhes da proposta nítidos, comprimindo mais as capas.
+          scale: 2,
           windowWidth: 1280,
           onclone: doc => {
             const conteudo = doc.getElementById('conteudo-proposta');
@@ -1229,7 +1229,8 @@ async function gerarPDF() {
           logging: false
         });
         if (i > 0) docDefinition.content.push({ text: '', pageBreak: 'before' });
-        docDefinition.content.push({ image: canvas.toDataURL('image/jpeg', 0.62), fit: [841.89, 595.28] });
+        const qualidade = paginas[i].classList.contains('img-page') ? 0.76 : 0.9;
+        docDefinition.content.push({ image: canvas.toDataURL('image/jpeg', qualidade), fit: [841.89, 595.28] });
       }
 
       const pdf = window.pdfMake.createPdf(docDefinition);
