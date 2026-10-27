@@ -921,40 +921,38 @@ function preencherProposta() {
       somaOpcionais = round2(somaOpcionais + opcionais[k]);
     });
 
-    // Total original antes do arredondamento (equipamentos + opcionais)
+    // Sem ajuste, preserva os valores originais e aplica apenas o arredondamento
+    // no item de instalação. Com ajuste, distribui primeiro o valor entre todos
+    // os itens e faz um novo arredondamento sobre o total ajustado.
     const ajusteTotal = round2(Number(dados.ajusteTotal) || 0);
-    const totalOriginal = round2(equipamentosTotal + somaOpcionais);
-
-    // Arredondar para a próxima centena
-    const totalArredondado = Math.ceil(totalOriginal / 100) * 100;
-
-    // Diferença a ser ajustada (pode ser 0)
-    const diferencaArredondamento = round2(totalArredondado - totalOriginal);
-
-    // Somar essa diferença ao item 'custoInstalacao' (itens opcionais)
-    opcionais['custoInstalacao'] = round2(opcionais['custoInstalacao'] + diferencaArredondamento);
-
-    // Distribuir o desconto/acréscimo proporcionalmente entre todos os itens.
-    somaOpcionais = opcionaisKeys.reduce((acc,k) => round2(acc + opcionais[k]), 0);
     const itensBase = {
       custoPainel: totalPainel,
       custoControladora: totalControladora,
       ...opcionais
     };
     const totalBaseItens = round2(Object.values(itensBase).reduce((acc, valor) => acc + valor, 0));
-    const totalComAjuste = Math.max(0, round2(totalBaseItens + ajusteTotal));
-    const fatorAjuste = totalBaseItens > 0 ? totalComAjuste / totalBaseItens : 1;
     const itensAjustados = {};
-    Object.entries(itensBase).forEach(([chave, valor]) => {
-      itensAjustados[chave] = round2(valor * fatorAjuste);
-    });
+    if (ajusteTotal === 0) {
+      Object.assign(itensAjustados, itensBase);
+    } else {
+      const totalComAjuste = Math.max(0, round2(totalBaseItens + ajusteTotal));
+      const fatorAjuste = totalBaseItens > 0 ? totalComAjuste / totalBaseItens : 1;
+      Object.entries(itensBase).forEach(([chave, valor]) => {
+        itensAjustados[chave] = round2(valor * fatorAjuste);
+      });
 
-    // Corrige a diferença de centavos no último item para preservar o total exato.
-    const somaAjustadaInicial = round2(Object.values(itensAjustados).reduce((acc, valor) => acc + valor, 0));
-    const ultimaChave = Object.keys(itensAjustados).reverse().find(chave => itensAjustados[chave] !== 0);
-    if (ultimaChave) {
-      itensAjustados[ultimaChave] = round2(itensAjustados[ultimaChave] + totalComAjuste - somaAjustadaInicial);
+      // Corrige a diferença de centavos no último item para preservar o ajuste.
+      const somaAjustada = round2(Object.values(itensAjustados).reduce((acc, valor) => acc + valor, 0));
+      const ultimaChave = Object.keys(itensAjustados).reverse().find(chave => itensAjustados[chave] !== 0);
+      if (ultimaChave) {
+        itensAjustados[ultimaChave] = round2(itensAjustados[ultimaChave] + totalComAjuste - somaAjustada);
+      }
     }
+
+    const totalAntesArredondamento = round2(Object.values(itensAjustados).reduce((acc, valor) => acc + valor, 0));
+    const totalArredondado = Math.ceil(totalAntesArredondamento / 100) * 100;
+    const diferencaArredondamento = round2(totalArredondado - totalAntesArredondamento);
+    itensAjustados.custoInstalacao = round2(itensAjustados.custoInstalacao + diferencaArredondamento);
 
     const totalPainelExibido = itensAjustados.custoPainel;
     const totalControladoraExibido = itensAjustados.custoControladora;
@@ -1100,7 +1098,7 @@ function preencherProposta() {
     `;
 
     document.getElementById('tabela-equipamentos').innerHTML = equipamentosHTML;
-    document.getElementById('total-equipamentos').textContent = formatCurrency(equipamentosTotal);
+    document.getElementById('total-equipamentos').textContent = formatCurrency(equipamentosTotalExibido);
 
     // Itens de instalação (usando os valores ajustados do objeto 'opcionais')
     let instalacaoHTML = "";

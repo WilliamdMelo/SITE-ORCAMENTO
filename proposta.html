@@ -275,35 +275,6 @@
     });
   </script>
 
-  <!-- Arredondamento de totais e atualização de tela -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => {
-        const dados = JSON.parse(localStorage.getItem('dadosProposta'));
-        if (dados && typeof dados.total === 'number') {
-          const totalOriginal = dados.total;
-          const totalArredondado = Math.ceil(totalOriginal / 100) * 100;
-          const diferenca = totalArredondado - totalOriginal;
-
-          if (diferenca > 0) {
-            dados.custoInstalacao = (dados.custoInstalacao || 0) + diferenca;
-            dados.total = totalArredondado;
-
-            const totalInstalacao = (dados.custoEstrutura || 0) + (dados.custoInstalacao || 0) + (dados.custoPilar || 0) +
-                                    (dados.custoSapata || 0) + (dados.custoACM || 0);
-
-            document.getElementById('total-instalacao').textContent =
-              totalInstalacao.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            document.getElementById('total-geral').textContent =
-              totalArredondado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-            localStorage.setItem('dadosProposta', JSON.stringify(dados));
-          }
-        }
-      }, 200);
-    });
-  </script>
-
   <!-- ✅ Preenchimento das parcelas de LOCACAO -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
