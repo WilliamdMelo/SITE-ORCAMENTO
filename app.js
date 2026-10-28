@@ -920,6 +920,8 @@ function preencherProposta() {
       opcionais[k] = round2(Number(dados[k]) || 0);
       somaOpcionais = round2(somaOpcionais + opcionais[k]);
     });
+    const estruturaOriginalIncluida = round2(Number(dados.custoEstrutura) || 0) > 0;
+    const instalacaoOriginalIncluida = round2(Number(dados.custoInstalacao) || 0) > 0;
 
     // Sem ajuste, preserva os valores originais e aplica apenas o arredondamento
     // no item de instalação. Com ajuste, distribui primeiro o valor entre todos
@@ -950,9 +952,12 @@ function preencherProposta() {
     }
 
     const totalAntesArredondamento = round2(Object.values(itensAjustados).reduce((acc, valor) => acc + valor, 0));
-    const totalArredondado = Math.ceil(totalAntesArredondamento / 100) * 100;
+    const deveArredondar = instalacaoOriginalIncluida;
+    const totalArredondado = deveArredondar ? Math.ceil(totalAntesArredondamento / 100) * 100 : totalAntesArredondamento;
     const diferencaArredondamento = round2(totalArredondado - totalAntesArredondamento);
-    itensAjustados.custoInstalacao = round2(itensAjustados.custoInstalacao + diferencaArredondamento);
+    if (deveArredondar) {
+      itensAjustados.custoInstalacao = round2(itensAjustados.custoInstalacao + diferencaArredondamento);
+    }
 
     const totalPainelExibido = itensAjustados.custoPainel;
     const totalControladoraExibido = itensAjustados.custoControladora;
@@ -1111,6 +1116,16 @@ function preencherProposta() {
 
     document.getElementById('lista-instalacao').innerHTML = instalacaoHTML;
     document.getElementById('total-instalacao').textContent = formatCurrency(totalInstalacaoExibido);
+
+    const itensNaoInclusos = ['Elétrica de instalação', 'Ponto de internet.'];
+    if (!estruturaOriginalIncluida) itensNaoInclusos.push('Estrutura de sustentação');
+    if (!instalacaoOriginalIncluida) itensNaoInclusos.push('Instalação / Frete');
+    const listaNaoInclusos = document.getElementById('lista-nao-inclusos');
+    if (listaNaoInclusos) {
+      listaNaoInclusos.innerHTML = itensNaoInclusos
+        .map(item => `<li>${item}</li>`)
+        .join('');
+    }
 
     // Totais
     document.getElementById('total-geral').textContent = formatCurrency(totalGeralExibido);
@@ -1330,6 +1345,20 @@ function gerarWord() {
     columnWidths: [8000, 2000],
     rows: [
     createLineItemRow('Valor total do projeto', formatCurrency(dados.total)),
+    ],
+    }),
+    new Paragraph({ text: "Itens não inclusos:", style: "strong", spacing: { before: 300, after: 200 } }),
+    new Table({
+    columnWidths: [10000],
+    rows: [
+    new TableRow({ children: [new TableCell({ children: [new Paragraph({ text: 'Elétrica de instalação' })] })] }),
+    new TableRow({ children: [new TableCell({ children: [new Paragraph({ text: 'Ponto de internet.' })] })] }),
+    ...(Number(dados.custoEstrutura) || 0) <= 0
+      ? [new TableRow({ children: [new TableCell({ children: [new Paragraph({ text: 'Estrutura de sustentação' })] })] })]
+      : [],
+    ...(Number(dados.custoInstalacao) || 0) <= 0
+      ? [new TableRow({ children: [new TableCell({ children: [new Paragraph({ text: 'Instalação / Frete' })] })] })]
+      : [],
     ],
     }),
     ],

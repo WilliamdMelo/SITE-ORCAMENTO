@@ -87,6 +87,8 @@
     .dotted-line .value { margin-left: auto; font-weight: 700; white-space: nowrap; text-align: right; }
     .subtotal { margin: 12px 0; padding: 8px 0; border-top: 1px solid #ddd; }
     .total { margin: 16px 0; padding: 8px 0; border-top: 2px solid #333; font-size: 12pt; font-weight: 700; }
+    .non-included { margin: 16px 0 0; }
+    .non-included .item-list { margin-top: 8px; }
     .payment-conditions { margin: 20px 0; }
     .payment-conditions ul { list-style: disc; padding-left: 20px; margin: 8px 0; }
     .payment-conditions li { margin: 4px 0; font-size: 11pt; }
@@ -184,6 +186,11 @@
           <span class="dots"></span>
           <span class="value" id="total-geral">R$ 239.840,00</span>
         </div>
+      </div>
+
+      <div class="non-included">
+        <div class="section-title">Itens não inclusos:</div>
+        <ul class="item-list" id="lista-nao-inclusos"></ul>
       </div>
     </section>
 
