@@ -1247,6 +1247,14 @@ async function gerarPDF() {
               conteudo.style.maxWidth = 'none';
               conteudo.style.margin = '0';
             }
+            const pagina = doc.querySelector('section.print-page');
+            if (pagina?.classList.contains('no-break-print')) {
+              pagina.style.width = '297mm';
+              pagina.style.height = '210mm';
+              pagina.style.minHeight = '210mm';
+              pagina.style.maxHeight = '210mm';
+              pagina.style.overflow = 'hidden';
+            }
           },
           backgroundColor: '#ffffff',
           useCORS: true,
