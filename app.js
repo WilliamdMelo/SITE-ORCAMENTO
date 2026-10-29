@@ -484,164 +484,53 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
   const canvas = document.getElementById("esbocoTotem");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const margem = 34;
-  const profundidade = Math.max(16, Math.min(34, canvas.width * 0.08));
-  const escala = Math.min((canvas.height - margem * 2 - 26) / hTotem, (canvas.width - margem * 2 - profundidade) / wTotem) * 0.82;
-  const tW = wTotem * escala, tH = hTotem * escala;
-  const dW = Math.min(wDisp * escala, tW * 0.88), dH = Math.min(hDisp * escala, tH * 0.88);
-  const cx = (canvas.width - tW - profundidade) / 2, cy = margem + 10;
-  const arredondar = (x, y, w, h, r) => {
-    const raio = Math.min(r, w / 2, h / 2);
-    ctx.beginPath();
-    ctx.moveTo(x + raio, y);
-    ctx.arcTo(x + w, y, x + w, y + h, raio);
-    ctx.arcTo(x + w, y + h, x, y + h, raio);
-    ctx.arcTo(x, y + h, x, y, raio);
-    ctx.arcTo(x, y, x + w, y, raio);
-    ctx.closePath();
+  const imagem = new Image();
+  imagem.onload = () => {
+    const escalaImagem = Math.min(canvas.width / imagem.width, canvas.height / imagem.height);
+    const largura = imagem.width * escalaImagem;
+    const altura = imagem.height * escalaImagem;
+    const offsetX = (canvas.width - largura) / 2;
+    const offsetY = (canvas.height - altura) / 2;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(imagem, offsetX, offsetY, largura, altura);
+
+    // Área dinâmica do display sobre a imagem-base.
+    const corpoX = offsetX + largura * 0.22;
+    const corpoY = offsetY + altura * 0.08;
+    const corpoW = largura * 0.55;
+    const corpoH = altura * 0.68;
+    const proporcaoW = Math.min(wDisp / Math.max(wTotem, 0.01), 0.88);
+    const proporcaoH = Math.min(hDisp / Math.max(hTotem, 0.01), 0.82);
+    const displayW = corpoW * proporcaoW;
+    const displayH = corpoH * proporcaoH;
+    const borda = Math.max(3, CONFIG.bordaInternaTotemM / Math.max(hTotem, 0.01) * corpoH);
+    const displayX = corpoX + (corpoW - displayW) / 2;
+    let displayY = corpoY + (corpoH - displayH) / 2;
+    if (posicao === "cima") displayY = corpoY + borda;
+    if (posicao === "baixo") displayY = corpoY + corpoH - displayH - borda;
+
+    ctx.save();
+    ctx.globalAlpha = 0.32;
+    ctx.fillStyle = "#031527";
+    ctx.shadowColor = "rgba(0, 180, 255, .7)";
+    ctx.shadowBlur = 12;
+    ctx.fillRect(displayX, displayY, displayW, displayH);
+    ctx.restore();
+    ctx.strokeStyle = "rgba(103,232,249,.9)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(displayX, displayY, displayW, displayH);
+
+    ctx.fillStyle = "rgba(255,255,255,.9)";
+    ctx.font = "12px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(`${wTotem.toFixed(2)} m`, canvas.width / 2, canvas.height - 12);
+    ctx.save();
+    ctx.translate(14, canvas.height / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText(`${hTotem.toFixed(2)} m`, 0, 0);
+    ctx.restore();
   };
-
-  const fundo = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  fundo.addColorStop(0, "#f8fafc");
-  fundo.addColorStop(1, "#e2e8f0");
-  ctx.fillStyle = fundo;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Sombra projetada no piso.
-  ctx.save();
-  ctx.fillStyle = "rgba(15,23,42,.18)";
-  ctx.filter = "blur(8px)";
-  ctx.beginPath();
-  ctx.ellipse(cx + tW / 2 + profundidade / 2, cy + tH + 30, tW * 0.48, 12, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
-  // Corpo frontal escuro, seguindo o formato do totem de referência.
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,.25)";
-  ctx.shadowBlur = 12;
-  ctx.shadowOffsetY = 6;
-  arredondar(cx, cy, tW, tH, 5);
-  const corpo = ctx.createLinearGradient(cx, cy, cx + tW, cy);
-  corpo.addColorStop(0, "#17202b");
-  corpo.addColorStop(0.22, "#080d14");
-  corpo.addColorStop(0.72, "#111827");
-  corpo.addColorStop(1, "#273342");
-  ctx.fillStyle = corpo;
-  ctx.fill();
-  ctx.restore();
-
-  // Laterais e topo para dar profundidade ao totem.
-  ctx.fillStyle = "#263443";
-  ctx.beginPath();
-  ctx.moveTo(cx + tW, cy);
-  ctx.lineTo(cx + tW + profundidade, cy + profundidade * 0.55);
-  ctx.lineTo(cx + tW + profundidade, cy + tH + profundidade * 0.55);
-  ctx.lineTo(cx + tW, cy + tH);
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillStyle = "#364554";
-  ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  ctx.lineTo(cx + tW, cy);
-  ctx.lineTo(cx + tW + profundidade, cy + profundidade * 0.55);
-  ctx.lineTo(cx + profundidade, cy + profundidade * 0.55);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.strokeStyle = "#0f172a";
-  ctx.lineWidth = 1.2;
-  arredondar(cx, cy, tW, tH, 5);
-  ctx.stroke();
-  const bordaPx = CONFIG.bordaInternaTotemM * escala;
-  let dispY;
-  if (posicao === "cima") dispY = cy + bordaPx;
-  else if (posicao === "baixo") dispY = cy + tH - dH - bordaPx;
-  else dispY = cy + (tH - dH) / 2;
-  const dispX = cx + (tW - dW) / 2;
-  ctx.save();
-  ctx.shadowColor = "rgba(2,132,199,.35)";
-  ctx.shadowBlur = 10;
-  arredondar(dispX, dispY, dW, dH, 3);
-  const tela = ctx.createLinearGradient(dispX, dispY, dispX + dW, dispY + dH);
-  tela.addColorStop(0, "#020617");
-  tela.addColorStop(0.42, "#075985");
-  tela.addColorStop(0.72, "#0e7490");
-  tela.addColorStop(1, "#020617");
-  ctx.fillStyle = tela;
-  ctx.fill();
-  ctx.restore();
-  ctx.strokeStyle = "#111827";
-  ctx.lineWidth = Math.max(2, escala * 0.025);
-  arredondar(dispX, dispY, dW, dH, 3);
-  ctx.stroke();
-
-  // Brilho diagonal do display.
-  ctx.save();
-  ctx.globalAlpha = 0.2;
-  ctx.fillStyle = "#bae6fd";
-  ctx.beginPath();
-  ctx.moveTo(dispX, dispY + dH * 0.18);
-  ctx.lineTo(dispX + dW * 0.32, dispY);
-  ctx.lineTo(dispX + dW * 0.72, dispY);
-  ctx.lineTo(dispX + dW * 0.2, dispY + dH * 0.22);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-
-  // Grade sutil de pixels e brilho da tela.
-  ctx.save();
-  ctx.globalAlpha = 0.18;
-  ctx.strokeStyle = "#67e8f9";
-  ctx.lineWidth = 0.5;
-  const passo = Math.max(4, Math.min(10, dW / 18));
-  for (let x = dispX + passo; x < dispX + dW; x += passo) { ctx.beginPath(); ctx.moveTo(x, dispY); ctx.lineTo(x, dispY + dH); ctx.stroke(); }
-  for (let y = dispY + passo; y < dispY + dH; y += passo) { ctx.beginPath(); ctx.moveTo(dispX, y); ctx.lineTo(dispX + dW, y); ctx.stroke(); }
-  ctx.restore();
-
-  // Estrutura lateral triangular e base alongada, como no modelo de referência.
-  const baseY = cy + tH + profundidade * 0.55;
-  ctx.save();
-  ctx.strokeStyle = "#334155";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(cx + tW + profundidade * 0.35, cy + tH * 0.62);
-  ctx.lineTo(cx + tW + profundidade * 0.88, baseY + 4);
-  ctx.lineTo(cx + tW + profundidade * 0.35, baseY - 2);
-  ctx.closePath();
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(cx + tW + profundidade * 0.42, cy + tH * 0.7);
-  ctx.lineTo(cx + tW + profundidade * 0.65, baseY);
-  ctx.stroke();
-  ctx.restore();
-
-  // Base metálica e pés de apoio.
-  const base = ctx.createLinearGradient(cx, baseY, cx, baseY + 20);
-  base.addColorStop(0, "#1f2937");
-  base.addColorStop(1, "#020617");
-  ctx.fillStyle = base;
-  ctx.fillRect(cx + tW * 0.16, baseY, tW * 0.68, 12);
-  ctx.fillStyle = "#020617";
-  ctx.fillRect(cx + tW * 0.08, baseY + 12, tW * 0.84, 8);
-  ctx.fillRect(cx + tW * 0.16, baseY + 20, tW * 0.12, 5);
-  ctx.fillRect(cx + tW * 0.72, baseY + 20, tW * 0.12, 5);
-  ctx.fillStyle = "#64748b";
-  ctx.beginPath();
-  ctx.arc(cx + tW * 0.22, baseY + 29, 4, 0, Math.PI * 2);
-  ctx.arc(cx + tW * 0.78, baseY + 29, 4, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = "#374151";
-  ctx.font = "12px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText(`${wTotem.toFixed(2)} m`, cx + tW / 2, canvas.height - 8);
-  ctx.save();
-  ctx.translate(13, cy + tH / 2);
-  ctx.rotate(-Math.PI / 2);
-  ctx.fillText(`${hTotem.toFixed(2)} m`, 0, 0);
-  ctx.restore();
+  imagem.src = "../img/totem-modelo.png";
 }
 
 function calcularCustoInstalacao(modulo) {
