@@ -581,9 +581,10 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
       textura.magFilter = THREE.LinearFilter;
       const logo = new THREE.Mesh(
         new THREE.PlaneGeometry(displayW * 0.98, displayH * 0.98),
-        new THREE.MeshBasicMaterial({ map: textura, color: 0xffffff, side: THREE.DoubleSide })
+        new THREE.MeshBasicMaterial({ map: textura, color: 0xffffff, side: THREE.DoubleSide, depthTest: false, depthWrite: false })
       );
       logo.position.set(tela.position.x, tela.position.y, frenteCorpo + Math.max(wTotem * 0.025, 0.025));
+      logo.renderOrder = 10;
       scene.add(logo);
       renderer.render(scene, camera);
     },
