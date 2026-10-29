@@ -1364,7 +1364,10 @@ function gerarWord() {
     ],
     }),
     ...(String(dados.observacaoProposta || '').trim() ? [
-      new Paragraph({ text: `Obs.: ${String(dados.observacaoProposta).trim()}`, spacing: { before: 300, after: 200 } })
+      new Paragraph({ text: 'Obs.:', style: 'strong', spacing: { before: 300, after: 120 } }),
+      ...String(dados.observacaoProposta).trim().split(/\r?\n/).map(linha =>
+        new Paragraph({ text: linha, spacing: { after: 80 } })
+      )
     ] : []),
     new Paragraph({ text: "Itens não inclusos:", style: "strong", spacing: { before: 300, after: 200 } }),
     new Table({
