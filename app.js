@@ -979,7 +979,8 @@ function preencherProposta() {
     dadosAjustados.diferencaArredondamento = diferencaArredondamento;
     dadosAjustados.ajusteTotal = 0;
 
-  if (typeof calcularLocacao === 'function' && dados.inputs?.oferecerLocacao === true) {
+  const oferecerLocacao = dados.inputs?.oferecerLocacao === true || dados.inputs?.oferecerLocacao === 'on';
+  if (typeof calcularLocacao === 'function' && oferecerLocacao) {
     dadosAjustados.locacao = calcularLocacao(totalGeralExibido);
   } else {
     delete dadosAjustados.locacao;
@@ -1595,8 +1596,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const mostrarValoresCondicoes = document.getElementById('mostrarValoresCondicoes')?.checked !== false;
       const ocultarCondicoesPagamento = document.getElementById('ocultarCondicoesPagamento')?.checked === true;
+      const oferecerLocacao = document.getElementById('oferecerLocacao')?.checked === true;
       const dadosProposta = {
         ...ultimoResultado,
+        inputs: {
+          ...(ultimoResultado.inputs || {}),
+          oferecerLocacao,
+        },
         mostrarValoresCondicoes,
         ocultarCondicoesPagamento,
       };
