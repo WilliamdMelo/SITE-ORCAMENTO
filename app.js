@@ -517,24 +517,23 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
   ctx.fill();
   ctx.restore();
 
-  // Corpo frontal com aparência metálica.
+  // Corpo frontal escuro, seguindo o formato do totem de referência.
   ctx.save();
   ctx.shadowColor = "rgba(0,0,0,.25)";
   ctx.shadowBlur = 12;
   ctx.shadowOffsetY = 6;
   arredondar(cx, cy, tW, tH, 5);
   const corpo = ctx.createLinearGradient(cx, cy, cx + tW, cy);
-  corpo.addColorStop(0, "#f1f5f9");
-  corpo.addColorStop(0.18, "#cbd5e1");
-  corpo.addColorStop(0.5, "#e5e7eb");
-  corpo.addColorStop(0.82, "#b8c0ca");
-  corpo.addColorStop(1, "#eef2f7");
+  corpo.addColorStop(0, "#17202b");
+  corpo.addColorStop(0.22, "#080d14");
+  corpo.addColorStop(0.72, "#111827");
+  corpo.addColorStop(1, "#273342");
   ctx.fillStyle = corpo;
   ctx.fill();
   ctx.restore();
 
   // Laterais e topo para dar profundidade ao totem.
-  ctx.fillStyle = "#7c8794";
+  ctx.fillStyle = "#263443";
   ctx.beginPath();
   ctx.moveTo(cx + tW, cy);
   ctx.lineTo(cx + tW + profundidade, cy + profundidade * 0.55);
@@ -542,7 +541,7 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
   ctx.lineTo(cx + tW, cy + tH);
   ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = "#f8fafc";
+  ctx.fillStyle = "#364554";
   ctx.beginPath();
   ctx.moveTo(cx, cy);
   ctx.lineTo(cx + tW, cy);
@@ -551,7 +550,7 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
   ctx.closePath();
   ctx.fill();
 
-  ctx.strokeStyle = "#64748b";
+  ctx.strokeStyle = "#0f172a";
   ctx.lineWidth = 1.2;
   arredondar(cx, cy, tW, tH, 5);
   ctx.stroke();
@@ -601,17 +600,38 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
   for (let y = dispY + passo; y < dispY + dH; y += passo) { ctx.beginPath(); ctx.moveTo(dispX, y); ctx.lineTo(dispX + dW, y); ctx.stroke(); }
   ctx.restore();
 
-  // Base metálica e pés de apoio.
+  // Estrutura lateral triangular e base alongada, como no modelo de referência.
   const baseY = cy + tH + profundidade * 0.55;
+  ctx.save();
+  ctx.strokeStyle = "#334155";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx + tW + profundidade * 0.35, cy + tH * 0.62);
+  ctx.lineTo(cx + tW + profundidade * 0.88, baseY + 4);
+  ctx.lineTo(cx + tW + profundidade * 0.35, baseY - 2);
+  ctx.closePath();
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx + tW + profundidade * 0.42, cy + tH * 0.7);
+  ctx.lineTo(cx + tW + profundidade * 0.65, baseY);
+  ctx.stroke();
+  ctx.restore();
+
+  // Base metálica e pés de apoio.
   const base = ctx.createLinearGradient(cx, baseY, cx, baseY + 20);
-  base.addColorStop(0, "#94a3b8");
-  base.addColorStop(1, "#334155");
+  base.addColorStop(0, "#1f2937");
+  base.addColorStop(1, "#020617");
   ctx.fillStyle = base;
   ctx.fillRect(cx + tW * 0.16, baseY, tW * 0.68, 12);
-  ctx.fillStyle = "#1e293b";
+  ctx.fillStyle = "#020617";
   ctx.fillRect(cx + tW * 0.08, baseY + 12, tW * 0.84, 8);
   ctx.fillRect(cx + tW * 0.16, baseY + 20, tW * 0.12, 5);
   ctx.fillRect(cx + tW * 0.72, baseY + 20, tW * 0.12, 5);
+  ctx.fillStyle = "#64748b";
+  ctx.beginPath();
+  ctx.arc(cx + tW * 0.22, baseY + 29, 4, 0, Math.PI * 2);
+  ctx.arc(cx + tW * 0.78, baseY + 29, 4, 0, Math.PI * 2);
+  ctx.fill();
 
   ctx.fillStyle = "#374151";
   ctx.font = "12px Arial";
