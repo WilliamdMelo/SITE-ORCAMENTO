@@ -685,7 +685,7 @@ function calcularOrcamento(modulo) {
   const somaM2    = frente + lateral + cima + traseiro;
 
   totalACM = somaM2;
-  custoACM = somaM2 * 450; // R$/m²
+  custoACM = somaM2 * 550; // R$/m²
 
   const posicao = document.getElementById("posicaoDisplay").value;
   desenharEsbocoTotem(larguraTotal, alturaTotal, larguraPainel, alturaPainel, posicao);
