@@ -547,8 +547,8 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
   scene.background = new THREE.Color(0xf1f5f9);
   const aspect = canvas.clientWidth / canvas.clientHeight || canvas.width / canvas.height;
   const alturaModelo = Math.max(hTotem, 1);
-  const camera = new THREE.PerspectiveCamera(28, aspect, 0.01, 1000);
-  camera.position.set(alturaModelo * 0.95, alturaModelo * 0.58, alturaModelo * 1.95);
+  const camera = new THREE.PerspectiveCamera(32, aspect, 0.01, 1000);
+  camera.position.set(alturaModelo * 0.78, alturaModelo * 0.62, alturaModelo * 2.65);
   camera.lookAt(0, alturaModelo * 0.45, 0);
 
   scene.add(new THREE.HemisphereLight(0xffffff, 0x64748b, 2.1));
@@ -585,10 +585,6 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
     barra.position.set(x, tela.position.y + y, tela.position.z + molduraEspessura * 0.4);
     scene.add(barra);
   });
-
-  const brilho = new THREE.PointLight(0x38bdf8, 0.35, Math.max(alturaModelo * 0.9, 2));
-  brilho.position.set(0, tela.position.y, tela.position.z + 0.35);
-  scene.add(brilho);
 
   const base = new THREE.Mesh(new THREE.BoxGeometry(wTotem * 1.18, 0.12, wTotem * 0.42), baseMaterial);
   base.position.y = 0.14;
