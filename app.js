@@ -560,6 +560,7 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
   const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x0a111b, metalness: 0.9, roughness: 0.22 });
   const telaMaterial = new THREE.MeshStandardMaterial({ color: 0x063451, emissive: 0x000000, emissiveIntensity: 0, metalness: 0, roughness: 0.92 });
   const profundidadeCorpo = Math.max(wTotem * 0.18, 0.16);
+  const frenteCorpo = profundidadeCorpo / 2 + Math.max(wTotem * 0.018, 0.018);
   const corpo = new THREE.Mesh(new THREE.BoxGeometry(wTotem, alturaModelo, profundidadeCorpo), metal);
   corpo.position.y = alturaModelo / 2 + 0.12;
   scene.add(corpo);
@@ -569,7 +570,7 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
   const displayH = Math.min(hDisp, alturaModelo - borda * 2);
   const tela = new THREE.Mesh(new THREE.BoxGeometry(displayW, displayH, Math.max(wTotem * 0.018, 0.018)), telaMaterial);
   const yBase = corpo.position.y - alturaModelo / 2 + borda + displayH / 2;
-  tela.position.set(0, posicao === 'cima' ? corpo.position.y + alturaModelo / 2 - borda - displayH / 2 : posicao === 'baixo' ? yBase : corpo.position.y, Math.max(wTotem * 0.07, 0.08));
+  tela.position.set(0, posicao === 'cima' ? corpo.position.y + alturaModelo / 2 - borda - displayH / 2 : posicao === 'baixo' ? yBase : corpo.position.y, frenteCorpo);
   scene.add(tela);
 
   const texturaLogoTotem = new THREE.TextureLoader().load(
@@ -580,7 +581,7 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
         new THREE.PlaneGeometry(displayW * 0.98, displayH * 0.98),
         new THREE.MeshBasicMaterial({ map: textura, color: 0xffffff, side: THREE.DoubleSide })
       );
-      logo.position.set(tela.position.x, tela.position.y, tela.position.z + Math.max(wTotem * 0.02, 0.025));
+      logo.position.set(tela.position.x, tela.position.y, frenteCorpo + Math.max(wTotem * 0.025, 0.025));
       scene.add(logo);
       renderer.render(scene, camera);
     },
