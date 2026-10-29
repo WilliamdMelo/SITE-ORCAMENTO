@@ -548,7 +548,7 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
   const aspect = canvas.clientWidth / canvas.clientHeight || canvas.width / canvas.height;
   const alturaModelo = Math.max(hTotem, 1);
   const camera = new THREE.PerspectiveCamera(28, aspect, 0.01, 1000);
-  camera.position.set(alturaModelo * 0.85, alturaModelo * 0.62, alturaModelo * 1.8);
+  camera.position.set(alturaModelo * 0.95, alturaModelo * 0.58, alturaModelo * 1.95);
   camera.lookAt(0, alturaModelo * 0.45, 0);
 
   scene.add(new THREE.HemisphereLight(0xffffff, 0x64748b, 2.1));
@@ -556,21 +556,39 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
   luz.position.set(-2, 5, 4);
   scene.add(luz);
 
-  const metal = new THREE.MeshStandardMaterial({ color: 0x17202b, metalness: 0.8, roughness: 0.28 });
-  const lateral = new THREE.MeshStandardMaterial({ color: 0x263443, metalness: 0.75, roughness: 0.35 });
-  const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x101827, metalness: 0.85, roughness: 0.25 });
-  const telaMaterial = new THREE.MeshStandardMaterial({ color: 0x075985, emissive: 0x022c45, emissiveIntensity: 0.65, metalness: 0.15, roughness: 0.35 });
-  const corpo = new THREE.Mesh(new THREE.BoxGeometry(wTotem, alturaModelo, Math.max(wTotem * 0.12, 0.12)), metal);
+  const metal = new THREE.MeshStandardMaterial({ color: 0x101923, metalness: 0.88, roughness: 0.24 });
+  const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x0a111b, metalness: 0.9, roughness: 0.22 });
+  const telaMaterial = new THREE.MeshStandardMaterial({ color: 0x063b5a, emissive: 0x001827, emissiveIntensity: 0.18, metalness: 0.2, roughness: 0.42 });
+  const profundidadeCorpo = Math.max(wTotem * 0.18, 0.16);
+  const corpo = new THREE.Mesh(new THREE.BoxGeometry(wTotem, alturaModelo, profundidadeCorpo), metal);
   corpo.position.y = alturaModelo / 2 + 0.28;
   scene.add(corpo);
 
   const borda = Math.max(CONFIG.bordaInternaTotemM, 0.01);
   const displayW = Math.min(wDisp, wTotem - borda * 2);
   const displayH = Math.min(hDisp, alturaModelo - borda * 2);
-  const tela = new THREE.Mesh(new THREE.BoxGeometry(displayW, displayH, Math.max(wTotem * 0.025, 0.025)), telaMaterial);
+  const tela = new THREE.Mesh(new THREE.BoxGeometry(displayW, displayH, Math.max(wTotem * 0.018, 0.018)), telaMaterial);
   const yBase = corpo.position.y - alturaModelo / 2 + borda + displayH / 2;
   tela.position.set(0, posicao === 'cima' ? corpo.position.y + alturaModelo / 2 - borda - displayH / 2 : posicao === 'baixo' ? yBase : corpo.position.y, Math.max(wTotem * 0.07, 0.08));
   scene.add(tela);
+
+  const molduraMaterial = new THREE.MeshStandardMaterial({ color: 0x02060b, metalness: 0.7, roughness: 0.3 });
+  const molduraEspessura = Math.max(borda * 0.55, wTotem * 0.018);
+  const molduras = [
+    [displayW + molduraEspessura * 2, molduraEspessura, 0, displayH / 2 + molduraEspessura / 2],
+    [displayW + molduraEspessura * 2, molduraEspessura, 0, -displayH / 2 - molduraEspessura / 2],
+    [molduraEspessura, displayH, -displayW / 2 - molduraEspessura / 2, 0],
+    [molduraEspessura, displayH, displayW / 2 + molduraEspessura / 2, 0]
+  ];
+  molduras.forEach(([w, h, x, y]) => {
+    const barra = new THREE.Mesh(new THREE.BoxGeometry(w, h, molduraEspessura), molduraMaterial);
+    barra.position.set(x, tela.position.y + y, tela.position.z + molduraEspessura * 0.4);
+    scene.add(barra);
+  });
+
+  const brilho = new THREE.PointLight(0x38bdf8, 0.35, Math.max(alturaModelo * 0.9, 2));
+  brilho.position.set(0, tela.position.y, tela.position.z + 0.35);
+  scene.add(brilho);
 
   const base = new THREE.Mesh(new THREE.BoxGeometry(wTotem * 1.18, 0.12, wTotem * 0.42), baseMaterial);
   base.position.y = 0.14;
