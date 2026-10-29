@@ -548,8 +548,8 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
   const aspect = canvas.clientWidth / canvas.clientHeight || canvas.width / canvas.height;
   const alturaModelo = Math.max(hTotem, 1);
   const camera = new THREE.PerspectiveCamera(32, aspect, 0.01, 1000);
-  camera.position.set(alturaModelo * 0.78, alturaModelo * 0.62, alturaModelo * 2.65);
-  camera.lookAt(0, alturaModelo * 0.45, 0);
+  camera.position.set(alturaModelo * 0.72, alturaModelo * 0.58, alturaModelo * 3.8);
+  camera.lookAt(0, alturaModelo * 0.5, 0);
 
   scene.add(new THREE.HemisphereLight(0xffffff, 0x64748b, 2.1));
   const luz = new THREE.DirectionalLight(0xffffff, 2.4);
@@ -558,7 +558,7 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
 
   const metal = new THREE.MeshStandardMaterial({ color: 0x101923, metalness: 0.88, roughness: 0.24 });
   const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x0a111b, metalness: 0.9, roughness: 0.22 });
-  const telaMaterial = new THREE.MeshStandardMaterial({ color: 0x063b5a, emissive: 0x001827, emissiveIntensity: 0.18, metalness: 0.2, roughness: 0.42 });
+  const telaMaterial = new THREE.MeshStandardMaterial({ color: 0x063451, emissive: 0x000000, emissiveIntensity: 0, metalness: 0, roughness: 0.92 });
   const profundidadeCorpo = Math.max(wTotem * 0.18, 0.16);
   const corpo = new THREE.Mesh(new THREE.BoxGeometry(wTotem, alturaModelo, profundidadeCorpo), metal);
   corpo.position.y = alturaModelo / 2 + 0.28;
