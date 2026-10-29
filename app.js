@@ -558,7 +558,16 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
 
   const metal = new THREE.MeshStandardMaterial({ color: 0x101923, metalness: 0.88, roughness: 0.24 });
   const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x0a111b, metalness: 0.9, roughness: 0.22 });
-  const texturaLogoTotem = new THREE.TextureLoader().load('../img/logototem.png', () => renderer.render(scene, camera));
+  const texturaLogoTotem = new THREE.TextureLoader().load(
+    new URL('../img/logototem.png', window.location.href).href,
+    textura => {
+      textura.colorSpace = THREE.SRGBColorSpace || textura.colorSpace;
+      telaMaterial.needsUpdate = true;
+      renderer.render(scene, camera);
+    },
+    undefined,
+    erro => console.error('Não foi possível carregar img/logototem.png:', erro)
+  );
   const telaMaterial = new THREE.MeshStandardMaterial({ map: texturaLogoTotem, color: 0xffffff, emissive: 0x000000, emissiveIntensity: 0, metalness: 0, roughness: 0.92 });
   const profundidadeCorpo = Math.max(wTotem * 0.18, 0.16);
   const corpo = new THREE.Mesh(new THREE.BoxGeometry(wTotem, alturaModelo, profundidadeCorpo), metal);
