@@ -533,6 +533,61 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
   imagem.src = "../img/totem-modelo.png";
 }
 
+// Preview 3D do totem: usa as dimensões reais do orçamento para montar a cena.
+function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
+  const canvas = document.getElementById('esbocoTotem');
+  if (!canvas || !window.THREE) return;
+  const THREE = window.THREE;
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(canvas.clientWidth || canvas.width, canvas.clientHeight || canvas.height, false);
+  renderer.setClearColor(0xf1f5f9, 1);
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xf1f5f9);
+  const aspect = canvas.clientWidth / canvas.clientHeight || canvas.width / canvas.height;
+  const alturaModelo = Math.max(hTotem, 1);
+  const camera = new THREE.PerspectiveCamera(28, aspect, 0.01, 1000);
+  camera.position.set(alturaModelo * 0.85, alturaModelo * 0.62, alturaModelo * 1.8);
+  camera.lookAt(0, alturaModelo * 0.45, 0);
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x64748b, 2.1));
+  const luz = new THREE.DirectionalLight(0xffffff, 2.4);
+  luz.position.set(-2, 5, 4);
+  scene.add(luz);
+
+  const metal = new THREE.MeshStandardMaterial({ color: 0x17202b, metalness: 0.8, roughness: 0.28 });
+  const lateral = new THREE.MeshStandardMaterial({ color: 0x263443, metalness: 0.75, roughness: 0.35 });
+  const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x101827, metalness: 0.85, roughness: 0.25 });
+  const telaMaterial = new THREE.MeshStandardMaterial({ color: 0x075985, emissive: 0x022c45, emissiveIntensity: 0.65, metalness: 0.15, roughness: 0.35 });
+  const corpo = new THREE.Mesh(new THREE.BoxGeometry(wTotem, alturaModelo, Math.max(wTotem * 0.12, 0.12)), metal);
+  corpo.position.y = alturaModelo / 2 + 0.28;
+  scene.add(corpo);
+
+  const borda = Math.max(CONFIG.bordaInternaTotemM, 0.01);
+  const displayW = Math.min(wDisp, wTotem - borda * 2);
+  const displayH = Math.min(hDisp, alturaModelo - borda * 2);
+  const tela = new THREE.Mesh(new THREE.BoxGeometry(displayW, displayH, Math.max(wTotem * 0.025, 0.025)), telaMaterial);
+  const yBase = corpo.position.y - alturaModelo / 2 + borda + displayH / 2;
+  tela.position.set(0, posicao === 'cima' ? corpo.position.y + alturaModelo / 2 - borda - displayH / 2 : posicao === 'baixo' ? yBase : corpo.position.y, Math.max(wTotem * 0.07, 0.08));
+  scene.add(tela);
+
+  const base = new THREE.Mesh(new THREE.BoxGeometry(wTotem * 1.18, 0.12, wTotem * 0.42), baseMaterial);
+  base.position.y = 0.14;
+  scene.add(base);
+  [-0.38, 0.38].forEach(x => {
+    const roda = new THREE.Mesh(new THREE.CylinderGeometry(Math.max(wTotem * 0.045, 0.025), Math.max(wTotem * 0.045, 0.025), 0.05, 20), new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.6 }));
+    roda.rotation.z = Math.PI / 2;
+    roda.position.set(wTotem * x, 0.04, 0);
+    scene.add(roda);
+  });
+
+  const piso = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 1 }));
+  piso.rotation.x = -Math.PI / 2;
+  scene.add(piso);
+  renderer.render(scene, camera);
+}
+
 function calcularCustoInstalacao(modulo) {
     const km = parseFloat(document.getElementById("kmLocal")?.value) || 0;
     const taxaFixa = CONFIG.taxaFixaInstalacao;
