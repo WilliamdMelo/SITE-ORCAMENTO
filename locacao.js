@@ -4,9 +4,12 @@
  * Responsável por calcular as parcelas de LOCAÇÃO
  * com base no sistema PRICE (parcelas fixas mensais).
  * 
- * Taxas utilizadas:
- * - 12 meses → 2.6% ao mês
- * - 24, 36, 48, 60 meses → 2.4% ao mês
+ * Taxas utilizadas (derivadas da tabela comercial):
+ * - 12 meses → 3.8143880907% ao mês
+ * - 24 meses → 3.13922475% ao mês
+ * - 36 meses → 2.9231670477% ao mês
+ * - 48 meses → 2.8617346107% ao mês
+ * - 60 meses → 2.7998983129% ao mês
  * 
  * Fórmula:
  * PMT = PV * [i(1+i)^n] / [(1+i)^n - 1]
@@ -23,9 +26,16 @@ function calcularLocacao(valorTotal) {
   const prazos = [12, 24, 36, 48, 60];
   const resultados = [];
 
+  const taxasMensais = {
+    12: 0.038143880907,
+    24: 0.0313922475,
+    36: 0.029231670477,
+    48: 0.028617346107,
+    60: 0.027998983129
+  };
+
   for (let n of prazos) {
-    // Taxa de juros mensal
-    const i = n === 12 ? 0.026 : 0.024;
+    const i = taxasMensais[n];
 
     // Fórmula PRICE
     const pmt = valorTotal * (i * Math.pow(1 + i, n)) / (Math.pow(1 + i, n) - 1);

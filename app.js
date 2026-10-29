@@ -979,10 +979,11 @@ function preencherProposta() {
     dadosAjustados.diferencaArredondamento = diferencaArredondamento;
     dadosAjustados.ajusteTotal = 0;
 
-  if (typeof calcularLocacao === 'function') {
-  const parcelasLocacao = calcularLocacao(ultimoResultado.total);
-  ultimoResultado.locacao = parcelasLocacao;
-}
+  if (typeof calcularLocacao === 'function' && dados.inputs?.oferecerLocacao === true) {
+    dadosAjustados.locacao = calcularLocacao(totalGeralExibido);
+  } else {
+    delete dadosAjustados.locacao;
+  }
 
     // Salva a versão ajustada no localStorage para que PDF/Word usem os mesmos números exibidos
     localStorage.setItem('dadosProposta', JSON.stringify(dadosAjustados));
