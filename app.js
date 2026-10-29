@@ -485,22 +485,56 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const margem = 28;
-  const profundidade = Math.max(12, Math.min(28, canvas.width * 0.07));
-  const escala = Math.min((canvas.height - margem * 2) / hTotem, (canvas.width - margem * 2 - profundidade) / wTotem) * 0.84;
+  const margem = 34;
+  const profundidade = Math.max(16, Math.min(34, canvas.width * 0.08));
+  const escala = Math.min((canvas.height - margem * 2 - 26) / hTotem, (canvas.width - margem * 2 - profundidade) / wTotem) * 0.82;
   const tW = wTotem * escala, tH = hTotem * escala;
   const dW = Math.min(wDisp * escala, tW * 0.88), dH = Math.min(hDisp * escala, tH * 0.88);
-  const cx = (canvas.width - tW - profundidade) / 2, cy = (canvas.height - tH) / 2;
+  const cx = (canvas.width - tW - profundidade) / 2, cy = margem + 10;
+  const arredondar = (x, y, w, h, r) => {
+    const raio = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + raio, y);
+    ctx.arcTo(x + w, y, x + w, y + h, raio);
+    ctx.arcTo(x + w, y + h, x, y + h, raio);
+    ctx.arcTo(x, y + h, x, y, raio);
+    ctx.arcTo(x, y, x + w, y, raio);
+    ctx.closePath();
+  };
+
+  const fundo = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  fundo.addColorStop(0, "#f8fafc");
+  fundo.addColorStop(1, "#e2e8f0");
+  ctx.fillStyle = fundo;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Sombra projetada no piso.
+  ctx.save();
+  ctx.fillStyle = "rgba(15,23,42,.18)";
+  ctx.filter = "blur(8px)";
+  ctx.beginPath();
+  ctx.ellipse(cx + tW / 2 + profundidade / 2, cy + tH + 30, tW * 0.48, 12, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Corpo frontal com aparência metálica.
   ctx.save();
   ctx.shadowColor = "rgba(0,0,0,.25)";
-  ctx.shadowBlur = 14;
-  ctx.shadowOffsetY = 8;
-  ctx.fillStyle = "#d6d9dd";
-  ctx.fillRect(cx, cy, tW, tH);
+  ctx.shadowBlur = 12;
+  ctx.shadowOffsetY = 6;
+  arredondar(cx, cy, tW, tH, 5);
+  const corpo = ctx.createLinearGradient(cx, cy, cx + tW, cy);
+  corpo.addColorStop(0, "#f1f5f9");
+  corpo.addColorStop(0.18, "#cbd5e1");
+  corpo.addColorStop(0.5, "#e5e7eb");
+  corpo.addColorStop(0.82, "#b8c0ca");
+  corpo.addColorStop(1, "#eef2f7");
+  ctx.fillStyle = corpo;
+  ctx.fill();
   ctx.restore();
 
   // Laterais e topo para dar profundidade ao totem.
-  ctx.fillStyle = "#aeb4bb";
+  ctx.fillStyle = "#7c8794";
   ctx.beginPath();
   ctx.moveTo(cx + tW, cy);
   ctx.lineTo(cx + tW + profundidade, cy + profundidade * 0.55);
@@ -508,7 +542,7 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
   ctx.lineTo(cx + tW, cy + tH);
   ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = "#eef0f2";
+  ctx.fillStyle = "#f8fafc";
   ctx.beginPath();
   ctx.moveTo(cx, cy);
   ctx.lineTo(cx + tW, cy);
@@ -517,24 +551,45 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
   ctx.closePath();
   ctx.fill();
 
-  ctx.strokeStyle = "#4b5563";
-  ctx.lineWidth = 1.5;
-  ctx.strokeRect(cx, cy, tW, tH);
+  ctx.strokeStyle = "#64748b";
+  ctx.lineWidth = 1.2;
+  arredondar(cx, cy, tW, tH, 5);
+  ctx.stroke();
   const bordaPx = CONFIG.bordaInternaTotemM * escala;
   let dispY;
   if (posicao === "cima") dispY = cy + bordaPx;
   else if (posicao === "baixo") dispY = cy + tH - dH - bordaPx;
   else dispY = cy + (tH - dH) / 2;
   const dispX = cx + (tW - dW) / 2;
+  ctx.save();
+  ctx.shadowColor = "rgba(2,132,199,.35)";
+  ctx.shadowBlur = 10;
+  arredondar(dispX, dispY, dW, dH, 3);
   const tela = ctx.createLinearGradient(dispX, dispY, dispX + dW, dispY + dH);
-  tela.addColorStop(0, "#07111f");
-  tela.addColorStop(0.5, "#123b62");
-  tela.addColorStop(1, "#02060c");
+  tela.addColorStop(0, "#020617");
+  tela.addColorStop(0.42, "#075985");
+  tela.addColorStop(0.72, "#0e7490");
+  tela.addColorStop(1, "#020617");
   ctx.fillStyle = tela;
-  ctx.fillRect(dispX, dispY, dW, dH);
+  ctx.fill();
+  ctx.restore();
   ctx.strokeStyle = "#111827";
-  ctx.lineWidth = Math.max(2, escala * 0.02);
-  ctx.strokeRect(dispX, dispY, dW, dH);
+  ctx.lineWidth = Math.max(2, escala * 0.025);
+  arredondar(dispX, dispY, dW, dH, 3);
+  ctx.stroke();
+
+  // Brilho diagonal do display.
+  ctx.save();
+  ctx.globalAlpha = 0.2;
+  ctx.fillStyle = "#bae6fd";
+  ctx.beginPath();
+  ctx.moveTo(dispX, dispY + dH * 0.18);
+  ctx.lineTo(dispX + dW * 0.32, dispY);
+  ctx.lineTo(dispX + dW * 0.72, dispY);
+  ctx.lineTo(dispX + dW * 0.2, dispY + dH * 0.22);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
 
   // Grade sutil de pixels e brilho da tela.
   ctx.save();
@@ -546,12 +601,17 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
   for (let y = dispY + passo; y < dispY + dH; y += passo) { ctx.beginPath(); ctx.moveTo(dispX, y); ctx.lineTo(dispX + dW, y); ctx.stroke(); }
   ctx.restore();
 
-  // Base do totem.
+  // Base metálica e pés de apoio.
   const baseY = cy + tH + profundidade * 0.55;
-  ctx.fillStyle = "#6b7280";
-  ctx.fillRect(cx + tW * 0.18, baseY, tW * 0.64, 10);
-  ctx.fillStyle = "#374151";
-  ctx.fillRect(cx + tW * 0.08, baseY + 10, tW * 0.84, 8);
+  const base = ctx.createLinearGradient(cx, baseY, cx, baseY + 20);
+  base.addColorStop(0, "#94a3b8");
+  base.addColorStop(1, "#334155");
+  ctx.fillStyle = base;
+  ctx.fillRect(cx + tW * 0.16, baseY, tW * 0.68, 12);
+  ctx.fillStyle = "#1e293b";
+  ctx.fillRect(cx + tW * 0.08, baseY + 12, tW * 0.84, 8);
+  ctx.fillRect(cx + tW * 0.16, baseY + 20, tW * 0.12, 5);
+  ctx.fillRect(cx + tW * 0.72, baseY + 20, tW * 0.12, 5);
 
   ctx.fillStyle = "#374151";
   ctx.font = "12px Arial";
