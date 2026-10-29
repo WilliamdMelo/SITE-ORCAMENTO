@@ -485,20 +485,83 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const marginTop = 20, marginBottom = 20;
-  const escala = (canvas.height - marginTop - marginBottom) / hTotem * 0.85;
+  const margem = 28;
+  const profundidade = Math.max(12, Math.min(28, canvas.width * 0.07));
+  const escala = Math.min((canvas.height - margem * 2) / hTotem, (canvas.width - margem * 2 - profundidade) / wTotem) * 0.84;
   const tW = wTotem * escala, tH = hTotem * escala;
-  const dW = wDisp * escala, dH = hDisp * escala;
-  const cx = (canvas.width - tW) / 2, cy = marginTop;
-  ctx.fillStyle = "#e0e0e0"; ctx.fillRect(cx, cy, tW, tH);
-  ctx.strokeStyle = "#444"; ctx.lineWidth = 1; ctx.strokeRect(cx, cy, tW, tH);
+  const dW = Math.min(wDisp * escala, tW * 0.88), dH = Math.min(hDisp * escala, tH * 0.88);
+  const cx = (canvas.width - tW - profundidade) / 2, cy = (canvas.height - tH) / 2;
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,.25)";
+  ctx.shadowBlur = 14;
+  ctx.shadowOffsetY = 8;
+  ctx.fillStyle = "#d6d9dd";
+  ctx.fillRect(cx, cy, tW, tH);
+  ctx.restore();
+
+  // Laterais e topo para dar profundidade ao totem.
+  ctx.fillStyle = "#aeb4bb";
+  ctx.beginPath();
+  ctx.moveTo(cx + tW, cy);
+  ctx.lineTo(cx + tW + profundidade, cy + profundidade * 0.55);
+  ctx.lineTo(cx + tW + profundidade, cy + tH + profundidade * 0.55);
+  ctx.lineTo(cx + tW, cy + tH);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "#eef0f2";
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + tW, cy);
+  ctx.lineTo(cx + tW + profundidade, cy + profundidade * 0.55);
+  ctx.lineTo(cx + profundidade, cy + profundidade * 0.55);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = "#4b5563";
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(cx, cy, tW, tH);
   const bordaPx = CONFIG.bordaInternaTotemM * escala;
   let dispY;
   if (posicao === "cima") dispY = cy + bordaPx;
   else if (posicao === "baixo") dispY = cy + tH - dH - bordaPx;
   else dispY = cy + (tH - dH) / 2;
-  ctx.fillStyle = "#111";
-  ctx.fillRect(cx + (tW - dW) / 2, dispY, dW, dH);
+  const dispX = cx + (tW - dW) / 2;
+  const tela = ctx.createLinearGradient(dispX, dispY, dispX + dW, dispY + dH);
+  tela.addColorStop(0, "#07111f");
+  tela.addColorStop(0.5, "#123b62");
+  tela.addColorStop(1, "#02060c");
+  ctx.fillStyle = tela;
+  ctx.fillRect(dispX, dispY, dW, dH);
+  ctx.strokeStyle = "#111827";
+  ctx.lineWidth = Math.max(2, escala * 0.02);
+  ctx.strokeRect(dispX, dispY, dW, dH);
+
+  // Grade sutil de pixels e brilho da tela.
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.strokeStyle = "#67e8f9";
+  ctx.lineWidth = 0.5;
+  const passo = Math.max(4, Math.min(10, dW / 18));
+  for (let x = dispX + passo; x < dispX + dW; x += passo) { ctx.beginPath(); ctx.moveTo(x, dispY); ctx.lineTo(x, dispY + dH); ctx.stroke(); }
+  for (let y = dispY + passo; y < dispY + dH; y += passo) { ctx.beginPath(); ctx.moveTo(dispX, y); ctx.lineTo(dispX + dW, y); ctx.stroke(); }
+  ctx.restore();
+
+  // Base do totem.
+  const baseY = cy + tH + profundidade * 0.55;
+  ctx.fillStyle = "#6b7280";
+  ctx.fillRect(cx + tW * 0.18, baseY, tW * 0.64, 10);
+  ctx.fillStyle = "#374151";
+  ctx.fillRect(cx + tW * 0.08, baseY + 10, tW * 0.84, 8);
+
+  ctx.fillStyle = "#374151";
+  ctx.font = "12px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText(`${wTotem.toFixed(2)} m`, cx + tW / 2, canvas.height - 8);
+  ctx.save();
+  ctx.translate(13, cy + tH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText(`${hTotem.toFixed(2)} m`, 0, 0);
+  ctx.restore();
 }
 
 function calcularCustoInstalacao(modulo) {
@@ -839,6 +902,10 @@ resultadoHTML += `</ul>
   </div>`;
 resultadoDiv.innerHTML = resultadoHTML;
 resultadoDiv.classList.remove('hidden');
+if (modulo === 'totem') {
+  const containerProposta = document.getElementById('container-gerar-proposta');
+  if (containerProposta) resultadoDiv.appendChild(containerProposta);
+}
 document.getElementById('tipoAjusteTotal')?.addEventListener('change', atualizarAjusteTotalProposta);
 document.getElementById('unidadeAjusteTotal')?.addEventListener('change', atualizarAjusteTotalProposta);
 document.getElementById('valorAjusteTotal')?.addEventListener('input', atualizarAjusteTotalProposta);
