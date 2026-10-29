@@ -558,17 +558,7 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
 
   const metal = new THREE.MeshStandardMaterial({ color: 0x101923, metalness: 0.88, roughness: 0.24 });
   const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x0a111b, metalness: 0.9, roughness: 0.22 });
-  const texturaLogoTotem = new THREE.TextureLoader().load(
-    new URL('../img/logototem.png', window.location.href).href,
-    textura => {
-      textura.colorSpace = THREE.SRGBColorSpace || textura.colorSpace;
-      telaMaterial.needsUpdate = true;
-      renderer.render(scene, camera);
-    },
-    undefined,
-    erro => console.error('Não foi possível carregar img/logototem.png:', erro)
-  );
-  const telaMaterial = new THREE.MeshStandardMaterial({ map: texturaLogoTotem, color: 0xffffff, emissive: 0x000000, emissiveIntensity: 0, metalness: 0, roughness: 0.92 });
+  const telaMaterial = new THREE.MeshStandardMaterial({ color: 0x063451, emissive: 0x000000, emissiveIntensity: 0, metalness: 0, roughness: 0.92 });
   const profundidadeCorpo = Math.max(wTotem * 0.18, 0.16);
   const corpo = new THREE.Mesh(new THREE.BoxGeometry(wTotem, alturaModelo, profundidadeCorpo), metal);
   corpo.position.y = alturaModelo / 2 + 0.12;
@@ -581,6 +571,22 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
   const yBase = corpo.position.y - alturaModelo / 2 + borda + displayH / 2;
   tela.position.set(0, posicao === 'cima' ? corpo.position.y + alturaModelo / 2 - borda - displayH / 2 : posicao === 'baixo' ? yBase : corpo.position.y, Math.max(wTotem * 0.07, 0.08));
   scene.add(tela);
+
+  const texturaLogoTotem = new THREE.TextureLoader().load(
+    new URL('../img/logototem.png', window.location.href).href,
+    textura => {
+      textura.needsUpdate = true;
+      const logo = new THREE.Mesh(
+        new THREE.PlaneGeometry(displayW * 0.98, displayH * 0.98),
+        new THREE.MeshBasicMaterial({ map: textura, color: 0xffffff, side: THREE.DoubleSide })
+      );
+      logo.position.set(tela.position.x, tela.position.y, tela.position.z + Math.max(wTotem * 0.02, 0.025));
+      scene.add(logo);
+      renderer.render(scene, camera);
+    },
+    undefined,
+    erro => console.error('Não foi possível carregar img/logototem.png:', erro)
+  );
 
   const molduraMaterial = new THREE.MeshStandardMaterial({ color: 0x02060b, metalness: 0.7, roughness: 0.3 });
   const molduraEspessura = Math.max(borda * 0.55, wTotem * 0.018);
