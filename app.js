@@ -960,10 +960,14 @@ resultadoHTML += `</ul>
     </div>
     <p id="resultado-total" class="mt-4 pt-2 border-t text-lg font-bold text-indigo-700">TOTAL: ${formatCurrency(total)}</p>
   </div>`;
+const containerPropostaAntesDaAtualizacao = document.getElementById('container-gerar-proposta');
+if (containerPropostaAntesDaAtualizacao?.parentElement === resultadoDiv) {
+  document.body.appendChild(containerPropostaAntesDaAtualizacao);
+}
 resultadoDiv.innerHTML = resultadoHTML;
 resultadoDiv.classList.remove('hidden');
 if (modulo === 'totem') {
-  const containerProposta = document.getElementById('container-gerar-proposta');
+  const containerProposta = document.getElementById('container-gerar-proposta') || containerPropostaAntesDaAtualizacao;
   if (containerProposta) resultadoDiv.appendChild(containerProposta);
 }
 document.getElementById('tipoAjusteTotal')?.addEventListener('change', atualizarAjusteTotalProposta);
