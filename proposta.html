@@ -286,24 +286,24 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const dados = JSON.parse(localStorage.getItem('dadosProposta'));
-      // Se vier locação (array de objetos), renderiza a tabela
-      if (dados?.locacao && Array.isArray(dados.locacao)) {
-        const tabela = document.getElementById('tabelaLocacaoProposta');
-        if (tabela) {
-          tabela.innerHTML = '';
-          dados.locacao.forEach(item => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td>${item.prazo} meses</td>
-              <td>${item.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
-            `;
-            tabela.appendChild(tr);
-          });
-        }
-      } else {
-        // Se não houver locação, esconde o bloco para não ficar vazio
-        const bloco = document.getElementById('condicoes-locacao');
-        if (bloco) bloco.style.display = 'none';
+      const oferecerLocacao = dados?.inputs?.oferecerLocacao === true || dados?.inputs?.oferecerLocacao === 'on' || dados?.oferecerLocacao === true;
+      const parcelas = Array.isArray(dados?.locacao)
+        ? dados.locacao
+        : oferecerLocacao && typeof window.calcularLocacao === 'function'
+          ? window.calcularLocacao(Number(dados?.total) || 0)
+          : [];
+      const tabela = document.getElementById('tabelaLocacaoProposta');
+      const bloco = document.getElementById('condicoes-locacao');
+      if (parcelas.length && tabela && bloco) {
+        tabela.innerHTML = parcelas.map(item => `
+          <tr>
+            <td>${item.prazo} meses</td>
+            <td>${item.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+          </tr>
+        `).join('');
+        bloco.style.display = 'block';
+      } else if (bloco) {
+        bloco.style.display = 'none';
       }
     });
   </script>
