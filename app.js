@@ -574,9 +574,11 @@ function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
   scene.add(tela);
 
   const texturaLogoTotem = new THREE.TextureLoader().load(
-    new URL('../img/logototem.png', window.location.href).href,
+    new URL('/img/logototem.png', window.location.origin).href,
     textura => {
       textura.needsUpdate = true;
+      textura.minFilter = THREE.LinearFilter;
+      textura.magFilter = THREE.LinearFilter;
       const logo = new THREE.Mesh(
         new THREE.PlaneGeometry(displayW * 0.98, displayH * 0.98),
         new THREE.MeshBasicMaterial({ map: textura, color: 0xffffff, side: THREE.DoubleSide })
