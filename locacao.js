@@ -43,7 +43,6 @@ function calcularLocacao(valorTotal) {
     resultados.push({
       prazo: n,
       valor: pmt,
-      totalPago: pmt * n,
       acrescimo: ((pmt * n / valorTotal) - 1) * 100
     });
   }

@@ -209,7 +209,6 @@
             <tr style="border-bottom: 1px solid #ccc;">
               <th style="text-align:left;">Prazo</th>
               <th style="text-align:left;">Parcela mensal</th>
-              <th style="text-align:left;">Total pago</th>
             </tr>
           </thead>
           <tbody id="tabelaLocacaoProposta"></tbody>
@@ -297,7 +296,6 @@
             tr.innerHTML = `
               <td>${item.prazo} meses</td>
               <td>${item.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
-              <td>${item.totalPago.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
             `;
             tabela.appendChild(tr);
           });
