@@ -352,6 +352,10 @@ function configurarOpcoesProposta() {
   opcoes.id = 'opcoes-proposta';
   opcoes.className = 'mb-4 space-y-2';
   opcoes.innerHTML = `
+    <label class="block text-sm text-gray-700">
+      Observação (opcional)
+      <textarea id="observacaoProposta" rows="3" class="input mt-1 w-full" placeholder="Digite uma observação para incluir na proposta"></textarea>
+    </label>
     <label class="flex items-center gap-2">
       <input type="checkbox" id="mostrarValoresCondicoes" checked />
       <span>Incluir valores nas condições de pagamento</span>
@@ -1132,6 +1136,16 @@ function preencherProposta() {
     // Totais
     document.getElementById('total-geral').textContent = formatCurrency(totalGeralExibido);
 
+    const observacao = String(dados.observacaoProposta || '').trim();
+    const blocoObservacao = document.getElementById('bloco-observacao');
+    const observacaoEl = document.getElementById('observacao-proposta');
+    if (observacao && blocoObservacao && observacaoEl) {
+      observacaoEl.textContent = observacao;
+      blocoObservacao.style.display = 'block';
+    } else if (blocoObservacao) {
+      blocoObservacao.style.display = 'none';
+    }
+
     // Condições de pagamento com base no total arredondado
     const totalProjeto = totalGeralExibido;
 
@@ -1349,6 +1363,9 @@ function gerarWord() {
     createLineItemRow('Valor total do projeto', formatCurrency(dados.total)),
     ],
     }),
+    ...(String(dados.observacaoProposta || '').trim() ? [
+      new Paragraph({ text: `Obs.: ${String(dados.observacaoProposta).trim()}`, spacing: { before: 300, after: 200 } })
+    ] : []),
     new Paragraph({ text: "Itens não inclusos:", style: "strong", spacing: { before: 300, after: 200 } }),
     new Table({
     columnWidths: [10000],
@@ -1597,6 +1614,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const mostrarValoresCondicoes = document.getElementById('mostrarValoresCondicoes')?.checked !== false;
       const ocultarCondicoesPagamento = document.getElementById('ocultarCondicoesPagamento')?.checked === true;
       const oferecerLocacao = document.getElementById('oferecerLocacao')?.checked === true;
+      const observacaoProposta = document.getElementById('observacaoProposta')?.value.trim() || '';
       const dadosProposta = {
         ...ultimoResultado,
         inputs: {
@@ -1605,6 +1623,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         },
         mostrarValoresCondicoes,
         ocultarCondicoesPagamento,
+        observacaoProposta,
       };
 
       const supabase = getSupabaseClient();
