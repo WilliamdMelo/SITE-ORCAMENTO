@@ -100,3 +100,245 @@ select.input option:checked {
         object-fit: cover;
     }
 }
+
+/* Sistema de orçamento — camada visual para telas de lançamento. */
+@media screen {
+    body[data-modulo]:not([data-modulo="proposta"]) {
+        --ui-ink: #172033;
+        --ui-muted: #667085;
+        --ui-line: #dce3ee;
+        --ui-surface: rgba(255, 255, 255, 0.94);
+        --ui-accent: #3157d5;
+        --ui-accent-dark: #203b9b;
+        min-height: 100vh;
+        margin: 0;
+        color: var(--ui-ink);
+        background:
+            radial-gradient(circle at 8% 0%, rgba(67, 111, 224, 0.16), transparent 32rem),
+            linear-gradient(145deg, #f4f7fb 0%, #eef2f8 52%, #f9fafc 100%);
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+
+    body[data-modulo]:not([data-modulo="proposta"]) > a:first-of-type,
+    body[data-modulo]:not([data-modulo="proposta"]) > h1 {
+        display: block;
+        width: min(1280px, calc(100% - 48px));
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    body[data-modulo]:not([data-modulo="proposta"]) > a:first-of-type {
+        margin-top: 26px;
+        margin-bottom: 14px;
+        color: var(--ui-accent);
+        font-size: 0.84rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-decoration: none;
+    }
+
+    body[data-modulo]:not([data-modulo="proposta"]) > a:first-of-type:hover {
+        color: var(--ui-accent-dark);
+    }
+
+    body[data-modulo]:not([data-modulo="proposta"]) > h1 {
+        margin-top: 0;
+        margin-bottom: 24px;
+        color: var(--ui-ink);
+        font-size: clamp(1.5rem, 2vw, 2.1rem);
+        font-weight: 800;
+        letter-spacing: -0.035em;
+    }
+
+    #user-header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        padding: 12px 24px;
+        color: #e9efff;
+        background: linear-gradient(100deg, #17213c, #263c76);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 8px 24px rgba(16, 29, 61, 0.16);
+    }
+
+    #user-header .container {
+        width: min(1280px, 100%);
+        max-width: none;
+        margin: 0 auto;
+    }
+
+    #user-header #logout-button {
+        padding: 7px 14px;
+        color: #eef3ff;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 999px;
+        font-size: 0.82rem;
+        transition: background 160ms ease, transform 160ms ease;
+    }
+
+    #user-header #logout-button:hover {
+        background: rgba(255, 255, 255, 0.18);
+        transform: translateY(-1px);
+    }
+
+    #orcamento-form {
+        width: min(1280px, calc(100% - 48px));
+        max-width: none;
+        margin: 0 auto 28px;
+        padding: clamp(24px, 4vw, 42px);
+        background: var(--ui-surface);
+        border: 1px solid rgba(218, 226, 238, 0.92);
+        border-radius: 22px;
+        box-shadow: 0 18px 50px rgba(32, 52, 91, 0.09);
+        backdrop-filter: blur(12px);
+    }
+
+    #orcamento-form > h2 {
+        margin-top: 30px;
+        margin-bottom: 14px;
+        padding-top: 20px;
+        color: #344054;
+        border-top: 1px solid var(--ui-line);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    #orcamento-form > h2:first-child {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: 0;
+    }
+
+    #orcamento-form label,
+    #orcamento-form .text-sm {
+        color: #475467;
+        font-size: 0.79rem;
+        font-weight: 700;
+        letter-spacing: 0.015em;
+    }
+
+    #orcamento-form .input,
+    #orcamento-form input:not([type="radio"]):not([type="checkbox"]),
+    #orcamento-form select,
+    #orcamento-form textarea {
+        min-height: 44px;
+        color: var(--ui-ink);
+        background-color: #fff;
+        border: 1px solid #cfd8e6;
+        border-radius: 11px;
+        box-shadow: 0 2px 6px rgba(30, 53, 92, 0.04);
+        transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    }
+
+    #orcamento-form .input:focus,
+    #orcamento-form input:not([type="radio"]):not([type="checkbox"]):focus,
+    #orcamento-form select:focus,
+    #orcamento-form textarea:focus {
+        border-color: #6c8bea;
+        box-shadow: 0 0 0 4px rgba(49, 87, 213, 0.12), 0 4px 12px rgba(30, 53, 92, 0.06);
+        outline: none;
+    }
+
+    #orcamento-form input[type="radio"],
+    #orcamento-form input[type="checkbox"] {
+        accent-color: var(--ui-accent);
+    }
+
+    #orcamento-form .grid > * {
+        min-width: 0;
+    }
+
+    #orcamento-form .btn-indigo,
+    #orcamento-form button[type="submit"] {
+        min-height: 46px;
+        padding: 0 20px;
+        border: 0;
+        border-radius: 11px;
+        background: linear-gradient(135deg, #3157d5, #4b37c7);
+        box-shadow: 0 8px 18px rgba(49, 87, 213, 0.22);
+        transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+    }
+
+    #orcamento-form .btn-indigo:hover,
+    #orcamento-form button[type="submit"]:hover {
+        filter: brightness(1.05);
+        transform: translateY(-1px);
+        box-shadow: 0 12px 24px rgba(49, 87, 213, 0.27);
+    }
+
+    #resultado {
+        width: min(1280px, calc(100% - 48px));
+        margin: 0 auto 28px;
+        padding: 24px 28px;
+        color: var(--ui-ink);
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid var(--ui-line);
+        border-radius: 18px;
+        box-shadow: 0 14px 34px rgba(32, 52, 91, 0.08);
+    }
+
+    #resultado h3 {
+        margin-bottom: 18px;
+        color: var(--ui-ink);
+        font-size: 1.05rem;
+        font-weight: 800;
+    }
+
+    #resultado hr {
+        margin: 20px 0;
+        border-color: var(--ui-line);
+    }
+
+    #ajustes-valores,
+    #container-gerar-proposta {
+        width: min(1280px, calc(100% - 48px));
+        margin: 0 auto 28px;
+        padding: 26px 28px;
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid var(--ui-line);
+        border-radius: 18px;
+        box-shadow: 0 14px 34px rgba(32, 52, 91, 0.07);
+    }
+
+    #ajustes-valores h2 {
+        color: var(--ui-ink);
+        font-size: 1.05rem;
+        font-weight: 800;
+    }
+
+    #ajustes-valores p {
+        color: var(--ui-muted);
+    }
+
+    #wrap {
+        width: min(1280px, calc(100% - 48px));
+        margin: 0 auto 36px;
+    }
+
+    @media (max-width: 700px) {
+        body[data-modulo]:not([data-modulo="proposta"]) > a:first-of-type,
+        body[data-modulo]:not([data-modulo="proposta"]) > h1,
+        #orcamento-form,
+        #resultado,
+        #ajustes-valores,
+        #container-gerar-proposta,
+        #wrap {
+            width: calc(100% - 28px);
+        }
+
+        #orcamento-form,
+        #resultado,
+        #ajustes-valores,
+        #container-gerar-proposta {
+            padding: 20px;
+            border-radius: 16px;
+        }
+
+        #user-header {
+            padding-inline: 14px;
+        }
+    }
+}
