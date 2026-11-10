@@ -1101,6 +1101,22 @@ video {
   --tw-ring-color: rgb(99 102 241 / var(--tw-ring-opacity, 1));
 }
 
+/* Evita que o menu nativo dos selects fique gigantesco em telas muito largas. */
+#orcamento-form {
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+}
+
+#orcamento-form .grid > * {
+  min-width: 0;
+}
+
+#orcamento-form select {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .line-item {
   display: flex;
   justify-content: space-between;
@@ -1120,6 +1136,26 @@ video {
   border-bottom: 1px dotted #9ca3af;
   position: relative;
   bottom: 4px;
+}
+
+/* Mantém os menus nativos legíveis em temas claros/escuros e no Windows. */
+select.input {
+  color: #111827 !important;
+  background-color: #fff !important;
+  color-scheme: light;
+  forced-color-adjust: none;
+}
+
+select.input option {
+  color: #111827 !important;
+  background-color: #fff !important;
+  -webkit-text-fill-color: #111827;
+}
+
+select.input option:checked {
+  color: #fff !important;
+  background-color: #2563eb !important;
+  -webkit-text-fill-color: #fff;
 }
 
 .line-item .price {

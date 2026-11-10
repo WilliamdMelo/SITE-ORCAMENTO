@@ -1,0 +1,6 @@
+# Project Codex configuration.
+# Codex CLI 0.160.1 supports native multi-agent orchestration through the
+# session feature. The concurrency limit remains session-scoped.
+
+[features]
+multi_agent = true

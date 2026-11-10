@@ -6,7 +6,7 @@ const CONFIG = {
   custoDiariaHotel: 300,
   custoHoraMunk: 200,
   impostoInstalacao: 1.18,
-  precoAcmM2: 450,
+  precoAcmM2: 550,
   profundidadeTotemM: 0.10,
   bordaInternaTotemM: 0.04,
 };
@@ -357,6 +357,10 @@ function configurarOpcoesProposta() {
       <textarea id="observacaoProposta" rows="3" class="input mt-1 w-full" placeholder="Digite uma observação para incluir na proposta"></textarea>
     </label>
     <label class="flex items-center gap-2">
+      <input type="checkbox" id="ocultarValoresItens" />
+      <span>Ocultar valores dos itens</span>
+    </label>
+    <label class="flex items-center gap-2">
       <input type="checkbox" id="mostrarValoresCondicoes" checked />
       <span>Incluir valores nas condições de pagamento</span>
     </label>
@@ -478,6 +482,17 @@ function calcularMedidaFinal(larguraInput, alturaInput) {
   }
   medidaFinal = `${finalW.toFixed(2)}m x ${finalH.toFixed(2)}m`;
   return { qtd, medidaFinal, finalW, finalH };
+}
+
+function validarDimensoesMinimas(larguraInput, alturaInput) {
+  const [modLarg, modAlt] = painelSelecionado.dimensao.split('x').map(Number);
+  const larguraMinima = Math.max(0.32, modLarg);
+  const alturaMinima = Math.max(0.16, modAlt);
+  if (larguraInput < larguraMinima || alturaInput < alturaMinima) {
+    alert(`As dimensões mínimas para este modelo são ${larguraMinima.toFixed(2)} m x ${alturaMinima.toFixed(2)} m.`);
+    return false;
+  }
+  return true;
 }
 
 function desenharEsbocoTotem(wTotem, hTotem, wDisp, hDisp, posicao) {
@@ -716,6 +731,7 @@ function calcularOrcamento(modulo) {
     altura = parseFloat(document.getElementById("alturaPainel").value);
   }
   if (isNaN(largura) || isNaN(altura) || largura <= 0 || altura <= 0) { alert("Preencha as dimensões com valores válidos."); return; }
+  if (!validarDimensoesMinimas(largura, altura)) return;
   const valorUnitario = parseFloat(document.getElementById("valorUnitario").value);
   if (isNaN(valorUnitario) || valorUnitario <= 0) { alert("Por favor, insira um valor unitário válido."); return; }
   const { qtd, medidaFinal, finalW, finalH } = calcularMedidaFinal(largura, altura);
@@ -740,7 +756,7 @@ function calcularOrcamento(modulo) {
     // metros lineares = perímetro do painel final
     metrosBorda = 2 * (finalW + finalH);
     const tipoBorda = document.getElementById('tipoBorda')?.value || '15x10';
-    const precoPorMetro = tipoBorda === '15x10' ? 293.00 : 345.00;
+    const precoPorMetro = 350.00;
     custoBorda = metrosBorda * precoPorMetro;
   }
 
@@ -806,7 +822,7 @@ function calcularOrcamento(modulo) {
   const somaM2    = frente + lateral + cima + traseiro;
 
   totalACM = somaM2;
-  custoACM = somaM2 * 550; // R$/m²
+  custoACM = somaM2 * CONFIG.precoAcmM2; // R$/m²
 
   const posicao = document.getElementById("posicaoDisplay").value;
   desenharEsbocoTotem(larguraTotal, alturaTotal, larguraPainel, alturaPainel, posicao);
@@ -930,7 +946,7 @@ if (custoEstrutura > 0) resultadoHTML += `<li><strong>Estrutura:</strong> ${form
 if (custoACM > 0) resultadoHTML += `<li><strong>Revestimento ACM (${totalACM.toFixed(2)} m²):</strong> ${formatCurrency(custoACM)}</li>`;
 if (custoBorda > 0) {
   const tipoBordaText = document.getElementById('tipoBorda')?.value || '15x10';
-  resultadoHTML += `<li><strong>Borda (${tipoBordaText}):</strong> ${metrosBorda.toFixed(2)} m × ${formatCurrency(tipoBordaText === '15x10' ? 293 : 345)} = ${formatCurrency(custoBorda)}</li>`;
+    resultadoHTML += `<li><strong>Borda (${tipoBordaText}):</strong> ${metrosBorda.toFixed(2)} m × ${formatCurrency(350)} = ${formatCurrency(custoBorda)}</li>`;
 }
 if (custoPilar > 0) resultadoHTML += `<li><strong>Pilar:</strong> ${formatCurrency(custoPilar)}</li>`;
 if (custoSapata > 0) resultadoHTML += `<li><strong>Sapata:</strong> ${formatCurrency(custoSapata)}</li>`;
@@ -1102,7 +1118,7 @@ function preencherProposta() {
     const totalInstalacaoExibido = somaOpcionais;
     const totalGeralExibido = round2(equipamentosTotalExibido + somaOpcionais);
 
-    // Atualiza dados ajustados para gerar PDF/Word coerente com a exibição
+// Atualiza dados ajustados para gerar um PDF coerente com a exibição
     const dadosAjustados = JSON.parse(JSON.stringify(dados));
     // sobrescreve os campos que mudaram (instalacao e total)
     dadosAjustados.custoPainel = totalPainelExibido;
@@ -1119,7 +1135,7 @@ function preencherProposta() {
     delete dadosAjustados.locacao;
   }
 
-    // Salva a versão ajustada no localStorage para que PDF/Word usem os mesmos números exibidos
+// Salva a versão ajustada no localStorage para que o PDF use os mesmos números exibidos
     localStorage.setItem('dadosProposta', JSON.stringify(dadosAjustados));
 
     // Medida total em cm (mantive para exibição geral)
@@ -1251,6 +1267,7 @@ function preencherProposta() {
 
     document.getElementById('lista-instalacao').innerHTML = instalacaoHTML;
     document.getElementById('total-instalacao').textContent = formatCurrency(totalInstalacaoExibido);
+    document.body.classList.toggle('ocultar-valores-itens', dados.ocultarValoresItens === true);
 
     const itensNaoInclusos = ['Elétrica de instalação', 'Ponto de internet.'];
     if (!estruturaOriginalIncluida) itensNaoInclusos.push('Estrutura de sustentação');
@@ -1376,7 +1393,8 @@ async function gerarPDF() {
               conteudo.style.maxWidth = 'none';
               conteudo.style.margin = '0';
             }
-            const pagina = doc.querySelector('section.print-page');
+            const paginasClonadas = doc.querySelectorAll('section.print-page');
+            const pagina = paginasClonadas[i] || doc.querySelector('section.print-page');
             if (pagina?.classList.contains('no-break-print')) {
               pagina.style.width = '297mm';
               pagina.style.height = '210mm';
@@ -1418,124 +1436,6 @@ async function gerarPDF() {
         botao.textContent = textoOriginal || 'Salvar PDF';
       }
     }
-}
-
-function gerarWord() {
-    if (!window.docx) {
-    alert("Biblioteca docx não carregada. Tente atualizar a página.");
-    return;
-    }
-    
-    const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Table, TableCell, TableRow, WidthType, BorderStyle } = window.docx;
-
-    const dados = JSON.parse(localStorage.getItem('dadosProposta'));
-    if (!dados) {
-    alert("Dados da proposta não encontrados.");
-    return;
-    }
-
-    const vendedor = vendedores.find(v => v.id === dados.vendedorId) || {};
-    let contador = parseInt(localStorage.getItem('propostaContador')) || 0;
-    contador++;
-    localStorage.setItem('propostaContador', contador);
-    const numeroProposta = contador.toString().padStart(2, '0');
-    const nomeVendedor = vendedor.nome ? vendedor.nome.split(' ')[0].toLowerCase() : 'proposta';
-    const nomeFicheiro = `proposta comercial ${numeroProposta} - ${nomeVendedor}.docx`;
-
-    const totalEquipamentos = (Number(dados.custoPainel) || 0) + (Number(dados.custoControladora) || 0);
-    const totalInstalacao = (Number(dados.custoEstrutura) || 0) + (Number(dados.custoInstalacao) || 0) + (Number(dados.custoPilar) || 0) + (Number(dados.custoSapata) || 0) + (Number(dados.custoACM) || 0) + (Number(dados.custoBorda) || 0);
-
-    // Helper para criar uma linha da tabela
-    const createLineItemRow = (label, price) => {
-    return new TableRow({
-    children: [
-    new TableCell({
-    children: [new Paragraph({ children: [new TextRun(label)] })],
-    borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } },
-    }),
-    new TableCell({
-    children: [new Paragraph({ text: price, alignment: AlignmentType.RIGHT })],
-    borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } },
-    }),
-    ],
-    });
-    };
-
-    // converte dimensao do painel (ex: "0.96x0.96") para "96x96cm"
-    let dimensaoCm = '';
-    if (dados.painel && dados.painel.dimensao) {
-      const dparts = dados.painel.dimensao.split('x').map(s => parseFloat(s));
-      if (dparts.length === 2 && !isNaN(dparts[0]) && !isNaN(dparts[1])) {
-        dimensaoCm = `${Math.round(dparts[0]*100)}x${Math.round(dparts[1]*100)}cm`;
-      } else {
-        dimensaoCm = dados.painel.dimensao;
-      }
-    }
-
-    const doc = new Document({
-    sections: [{
-    children: [
-    new Paragraph({ text: "Proposta Comercial", heading: HeadingLevel.HEADING_1, spacing: { after: 400 } }),
-    new Paragraph({ text: `1 – OBJETO: Painel LED ${dados.painel?.resolucao || ''} ${dados.painel?.ambiente || ''} ${dados.medidaFinal || ''}`, spacing: { after: 200 } }),
-    new Paragraph({ text: "Itens inclusos (Equipamentos):", style: "strong", spacing: { after: 200 } }),
-    new Table({
-    columnWidths: [8000, 2000],
-    rows: [
-    createLineItemRow(`✓ ${dados.isDuplaFace ? (dados.qtd * 2) : dados.qtd} Gabinetes LED ${dados.painel?.resolucao || ''} - ${dimensaoCm} - ${dados.painel?.ambiente || ''}`, formatCurrency(dados.custoPainel)),
-    createLineItemRow(`✓ ${dados.isDuplaFace ? '2' : '1'} ${dados.controladoraTexto}`, formatCurrency(dados.custoControladora)),
-    createLineItemRow('Valor equipamentos', formatCurrency(totalEquipamentos)),
-    ],
-    }),
-    new Paragraph({ text: "\nItens opcionais complementares (Estrutura/ mão de obra):", style: "strong", spacing: { after: 200 } }),
-    new Table({
-    columnWidths: [8000, 2000],
-    rows: [
-    createLineItemRow('Valor materiais / instalação', formatCurrency(totalInstalacao)),
-    ],
-    }),
-    new Paragraph({ text: "", spacing: { after: 400 } }),
-    new Table({
-    columnWidths: [8000, 2000],
-    rows: [
-    createLineItemRow('Valor total do projeto', formatCurrency(dados.total)),
-    ],
-    }),
-    ...(String(dados.observacaoProposta || '').trim() ? [
-      new Paragraph({ text: 'Obs.:', style: 'strong', spacing: { before: 300, after: 120 } }),
-      ...String(dados.observacaoProposta).trim().split(/\r?\n/).map(linha =>
-        new Paragraph({ text: linha, spacing: { after: 80 } })
-      )
-    ] : []),
-    new Paragraph({ text: "Itens não inclusos:", style: "strong", spacing: { before: 300, after: 200 } }),
-    new Table({
-    columnWidths: [10000],
-    rows: [
-    new TableRow({ children: [new TableCell({ children: [new Paragraph({ text: 'Elétrica de instalação' })] })] }),
-    new TableRow({ children: [new TableCell({ children: [new Paragraph({ text: 'Ponto de internet.' })] })] }),
-    ...(Number(dados.custoEstrutura) || 0) <= 0
-      ? [new TableRow({ children: [new TableCell({ children: [new Paragraph({ text: 'Estrutura de sustentação' })] })] })]
-      : [],
-    ...(Number(dados.custoInstalacao) || 0) <= 0
-      ? [new TableRow({ children: [new TableCell({ children: [new Paragraph({ text: 'Instalação / Frete' })] })] })]
-      : [],
-    ],
-    }),
-    ],
-    }],
-    styles: {
-    paragraph: { run: { size: "22pt" } }, // 11pt
-    strong: { run: { bold: true, size: "22pt" } },
-    }
-    });
-
-    Packer.toBlob(doc).then(blob => {
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = nomeFicheiro;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    });
 }
 
 async function carregarHistorico() {
@@ -1630,7 +1530,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (moduloAtual === 'proposta') {
       const btnSalvarPDF = document.getElementById('btnSalvarPDF');
-      const btnSalvarWord = document.getElementById('btnSalvarWord');
       if (btnSalvarPDF) btnSalvarPDF.addEventListener('click', gerarPDF, { once: false });
       try {
         preencherProposta();
@@ -1638,7 +1537,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Falha ao preencher a proposta:', error);
         alert(`A proposta foi aberta, mas houve um erro ao carregar os dados: ${error.message || 'erro desconhecido'}`);
       }
-      if (btnSalvarWord) btnSalvarWord.addEventListener('click', gerarWord);
     }
     else if (moduloAtual === 'accept-invite') {
       await configurarAceiteConvite();
@@ -1681,6 +1579,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     else {
       carregarModelos();
+      carregarControladoras();
       carregarVendedores();
       const dadosParaCarregar = JSON.parse(localStorage.getItem('propostaParaCarregar'));
       if (dadosParaCarregar && dadosParaCarregar.modulo === moduloAtual) {
@@ -1752,6 +1651,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const tituloProposta = `${vendedorNome} - ${clienteNome}`;
 
       const mostrarValoresCondicoes = document.getElementById('mostrarValoresCondicoes')?.checked !== false;
+      const ocultarValoresItens = document.getElementById('ocultarValoresItens')?.checked === true;
       const ocultarCondicoesPagamento = document.getElementById('ocultarCondicoesPagamento')?.checked === true;
       const oferecerLocacao = document.getElementById('oferecerLocacao')?.checked === true;
       const observacaoProposta = document.getElementById('observacaoProposta')?.value.trim() || '';
@@ -1762,6 +1662,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           oferecerLocacao,
         },
         mostrarValoresCondicoes,
+        ocultarValoresItens,
         ocultarCondicoesPagamento,
         observacaoProposta,
       };

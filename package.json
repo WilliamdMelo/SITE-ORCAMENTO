@@ -7,7 +7,8 @@
     "lib": "lib"
   },
   "scripts": {
-    "build": "npx tailwindcss -i ./src/input.css -o ./style.css"
+    "build": "npx tailwindcss -i ./src/input.css -o ./style.css",
+    "test": "node --test tests/*.test.js"
   },
   "author": "",
   "license": "ISC",

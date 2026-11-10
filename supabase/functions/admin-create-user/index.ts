@@ -1,7 +1,12 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+const allowedOrigins = new Set([
+  'https://site-orcamento-five.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:5174',
+]);
+
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
@@ -14,12 +19,17 @@ type CreateUserRequest = {
 };
 
 Deno.serve(async (req: Request) => {
+  const origin = req.headers.get('Origin');
+  if (origin && !allowedOrigins.has(origin)) {
+    return jsonResponse({ error: 'Origem não permitida.' }, 403, req);
+  }
+
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: getCorsHeaders(req) });
   }
 
   if (req.method !== 'POST') {
-    return jsonResponse({ error: 'Método não permitido.' }, 405);
+    return jsonResponse({ error: 'Método não permitido.' }, 405, req);
   }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -27,7 +37,7 @@ Deno.serve(async (req: Request) => {
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
   if (!supabaseUrl || !anonKey || !serviceRoleKey) {
-    return jsonResponse({ error: 'Configuração Supabase indisponível.' }, 500);
+    return jsonResponse({ error: 'Configuração Supabase indisponível.' }, 500, req);
   }
 
   const authorization = req.headers.get('Authorization') || '';
@@ -38,7 +48,7 @@ Deno.serve(async (req: Request) => {
 
   const { data: authData, error: authError } = await userClient.auth.getUser();
   if (authError || !authData.user) {
-    return jsonResponse({ error: 'Não autenticado.' }, 401);
+    return jsonResponse({ error: 'Não autenticado.' }, 401, req);
   }
 
   const { data: callerProfile, error: profileError } = await adminClient
@@ -48,14 +58,14 @@ Deno.serve(async (req: Request) => {
     .single();
 
   if (profileError || callerProfile?.role !== 'superadmin') {
-    return jsonResponse({ error: 'Acesso negado.' }, 403);
+    return jsonResponse({ error: 'Acesso negado.' }, 403, req);
   }
 
   let payload: CreateUserRequest;
   try {
     payload = await req.json();
   } catch (_) {
-    return jsonResponse({ error: 'JSON inválido.' }, 400);
+    return jsonResponse({ error: 'JSON inválido.' }, 400, req);
   }
 
   const email = String(payload.email || '').trim().toLowerCase();
@@ -64,13 +74,13 @@ Deno.serve(async (req: Request) => {
   const redirectTo = normalizeAllowedRedirect(payload.redirect_to);
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return jsonResponse({ error: 'Email inválido.' }, 400);
+    return jsonResponse({ error: 'Email inválido.' }, 400, req);
   }
   if (!fullName) {
-    return jsonResponse({ error: 'Nome obrigatório.' }, 400);
+    return jsonResponse({ error: 'Nome obrigatório.' }, 400, req);
   }
   if (!redirectTo) {
-    return jsonResponse({ error: 'URL de convite não permitida.' }, 400);
+    return jsonResponse({ error: 'URL de convite não permitida.' }, 400, req);
   }
 
   const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
@@ -81,19 +91,19 @@ Deno.serve(async (req: Request) => {
   if (inviteError?.code === 'email_exists' || inviteError?.message?.toLowerCase().includes('already been registered')) {
     const { data: usersData, error: usersError } = await adminClient.auth.admin.listUsers();
     if (usersError) {
-      return jsonResponse({ error: usersError.message }, 500);
+      return jsonResponse({ error: usersError.message }, 500, req);
     }
 
     const existingUser = usersData.users.find((user) => user.email?.toLowerCase() === email);
     if (!existingUser) {
-      return jsonResponse({ error: 'Usuário existente não encontrado.' }, 500);
+      return jsonResponse({ error: 'Usuário existente não encontrado.' }, 500, req);
     }
 
     const { error: recoveryError } = await adminClient.auth.resetPasswordForEmail(email, {
       redirectTo,
     });
     if (recoveryError) {
-      return jsonResponse({ error: recoveryError.message }, 400);
+      return jsonResponse({ error: recoveryError.message }, 400, req);
     }
 
     const { error: existingProfileError } = await adminClient
@@ -106,7 +116,7 @@ Deno.serve(async (req: Request) => {
       });
 
     if (existingProfileError) {
-      return jsonResponse({ error: existingProfileError.message }, 500);
+      return jsonResponse({ error: existingProfileError.message }, 500, req);
     }
 
     return jsonResponse({
@@ -117,11 +127,11 @@ Deno.serve(async (req: Request) => {
         role,
       },
       link_type: 'recovery',
-    });
+    }, 200, req);
   }
 
   if (inviteError || !inviteData.user) {
-    return jsonResponse({ error: inviteError?.message || 'Falha ao criar convite.' }, 400);
+    return jsonResponse({ error: inviteError?.message || 'Falha ao criar convite.' }, 400, req);
   }
 
   const { error: upsertError } = await adminClient
@@ -134,7 +144,7 @@ Deno.serve(async (req: Request) => {
     });
 
   if (upsertError) {
-    return jsonResponse({ error: upsertError.message }, 500);
+    return jsonResponse({ error: upsertError.message }, 500, req);
   }
 
   return jsonResponse({
@@ -145,7 +155,7 @@ Deno.serve(async (req: Request) => {
       role,
     },
     link_type: 'invite',
-  });
+  }, 200, req);
 });
 
 function normalizeAllowedRedirect(value: unknown) {
@@ -153,12 +163,6 @@ function normalizeAllowedRedirect(value: unknown) {
 
   try {
     const url = new URL(value);
-    const allowedOrigins = new Set([
-      'https://site-orcamento-five.vercel.app',
-      'http://localhost:5173',
-      'http://localhost:5174',
-    ]);
-
     if (!allowedOrigins.has(url.origin)) return null;
     if (url.pathname !== '/accept-invite.html') return null;
     url.search = '';
@@ -169,11 +173,22 @@ function normalizeAllowedRedirect(value: unknown) {
   }
 }
 
-function jsonResponse(body: unknown, status = 200) {
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('Origin');
+  return {
+    ...corsHeaders,
+    ...(origin && allowedOrigins.has(origin) ? {
+      'Access-Control-Allow-Origin': origin,
+      Vary: 'Origin',
+    } : {}),
+  };
+}
+
+function jsonResponse(body: unknown, status = 200, req: Request) {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
-      ...corsHeaders,
+      ...getCorsHeaders(req),
       'Content-Type': 'application/json',
     },
   });

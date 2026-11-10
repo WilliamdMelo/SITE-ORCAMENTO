@@ -85,6 +85,11 @@
     .item-description { flex: 0 1 auto; }
     .item-dots { flex: 1 1 auto; border-bottom: 1px dotted #666; height: 0; transform: translateY(-2px); }
     .price { margin-left: auto; font-weight: 700; white-space: nowrap; text-align: right; }
+    body.ocultar-valores-itens #tabela-equipamentos .price,
+    body.ocultar-valores-itens #lista-instalacao .price,
+    body.ocultar-valores-itens #tabela-equipamentos .dots,
+    body.ocultar-valores-itens #lista-instalacao .dots,
+    body.ocultar-valores-itens .subtotal { display: none; }
     .dotted-line { display: flex; align-items: baseline; margin: 8px 0; font-size: 11pt; }
     .dotted-line .label { flex: 0 0 auto; font-weight: 700; }
     .dotted-line .dots { flex: 1; border-bottom: 1px dotted #666; margin: 0 8px; height: 0; transform: translateY(-2px); }
@@ -138,7 +143,6 @@
 <body data-modulo="proposta">
   <div id="toolbar">
     <button type="button" id="btnSalvarPDF" class="btn">Salvar PDF</button>
-    <button id="btnSalvarWord" class="btn">Salvar Word</button>
   </div>
 
   <div id="conteudo-proposta">
@@ -275,7 +279,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/vfs_fonts.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.min.js"></script>
 
   <!-- Seu código -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
