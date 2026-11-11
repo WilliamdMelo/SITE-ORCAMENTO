@@ -1267,15 +1267,16 @@ function preencherProposta() {
     const resolucao = painel.resolucao || '';
     const ambiente = painel.ambiente || '';
     const faceTexto = dados.isDuplaFace ? 'Dupla face' : 'Face única';
-    const objetoTextParts = [];
-    if (resolucao) objetoTextParts.push(resolucao);
-    if (dados.resolucaoFinal) objetoTextParts.push(`Resolução: ${dados.resolucaoFinal}`);
-    if (ambiente) objetoTextParts.push(ambiente);
-    if (medidaCm) objetoTextParts.push(medidaCm);
-    objetoTextParts.push(faceTexto);
-    const objetoFinal = `Painel LED ${objetoTextParts.join(' · ')}`.trim();
     const objetoEl = document.getElementById('objeto-proposta');
-    if (objetoEl) objetoEl.textContent = objetoFinal;
+    if (objetoEl) objetoEl.textContent = `Painel LED ${resolucao || '—'}`.trim();
+    const objetoResolucaoEl = document.getElementById('objeto-resolucao');
+    if (objetoResolucaoEl) objetoResolucaoEl.textContent = dados.resolucaoFinal || '—';
+    const objetoAmbienteEl = document.getElementById('objeto-ambiente');
+    if (objetoAmbienteEl) objetoAmbienteEl.textContent = ambiente || '—';
+    const objetoMedidaEl = document.getElementById('objeto-medida');
+    if (objetoMedidaEl) objetoMedidaEl.textContent = medidaCm || '—';
+    const objetoFaceEl = document.getElementById('objeto-face');
+    if (objetoFaceEl) objetoFaceEl.textContent = faceTexto;
 
     // Equipamentos HTML (mostrar totals exatos) - agora usa dimensão do gabinete quando aplicável
     let labelEquipamento = '';

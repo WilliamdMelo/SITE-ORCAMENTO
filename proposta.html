@@ -78,32 +78,63 @@
     .section { margin: 20px 0; }
     .section-title { font-size: 11pt; font-weight: 700; color: var(--blue); margin: 0 0 8px 0; }
     .objeto {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
-      gap: 10px;
-      align-items: start;
+      display: block;
       margin: 18px 0 20px;
-      font-size: 10.5pt;
+      padding: 10px 12px 12px;
+      border: 1px solid #dbe4ec;
+      border-radius: 6px;
+      background: #f8fafc;
+    }
+    .objeto-heading {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 9px;
     }
     .objeto-label {
       color: var(--blue);
-      font-size: 8.5pt;
+      font-size: 10.5pt;
       font-weight: 800;
-      letter-spacing: .08em;
-      line-height: 1.5;
-      text-transform: uppercase;
-      padding-top: 7px;
+      line-height: 1.2;
     }
-    .objeto-value {
-      display: block;
+    .objeto-kicker {
+      color: #6b7b8b;
+      font-size: 7.5pt;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .objeto-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .objeto-field {
       min-width: 0;
-      padding: 7px 11px 8px;
-      border-left: 3px solid var(--blue);
-      border-radius: 0 5px 5px 0;
-      background: #f5f8fb;
+      padding: 7px 9px 8px;
+      border-left: 2px solid #c8d8e5;
+      background: #fff;
+    }
+    .objeto-field span {
+      display: block;
+      margin-bottom: 3px;
+      color: #6b7b8b;
+      font-size: 7.5pt;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .objeto-field strong {
+      display: block;
+      overflow-wrap: anywhere;
       color: var(--text-color);
-      font-weight: 600;
-      line-height: 1.45;
+      font-size: 9.5pt;
+      font-weight: 650;
+      line-height: 1.3;
+    }
+    @media (max-width: 760px) {
+      .objeto-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .objeto-field:first-child { grid-column: 1 / -1; }
     }
     .item-list { list-style: none; padding: 0; margin: 8px 0; }
     .item-list li { display: flex; align-items: baseline; margin: 4px 0; font-size: 11pt; }
@@ -190,8 +221,17 @@
       </div>
 
       <div class="objeto">
-        <strong class="objeto-label">Objeto</strong>
-        <span class="objeto-value" id="objeto-proposta">Painel de LED outdoor P5.0mm · 288x480cm · Dupla face</span>
+        <div class="objeto-heading">
+          <strong class="objeto-label">Objeto</strong>
+          <span class="objeto-kicker">Especificação do projeto</span>
+        </div>
+        <div class="objeto-grid">
+          <div class="objeto-field"><span>Modelo</span><strong id="objeto-proposta">Painel LED P5.0mm</strong></div>
+          <div class="objeto-field"><span>Resolução</span><strong id="objeto-resolucao">—</strong></div>
+          <div class="objeto-field"><span>Ambiente</span><strong id="objeto-ambiente">Outdoor</strong></div>
+          <div class="objeto-field"><span>Medida</span><strong id="objeto-medida">288x480cm</strong></div>
+          <div class="objeto-field"><span>Face</span><strong id="objeto-face">Dupla face</strong></div>
+        </div>
       </div>
 
       <div class="section">

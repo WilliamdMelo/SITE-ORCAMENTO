@@ -38,16 +38,20 @@ test('cálculo e exibição carregam a resolução efetiva do painel', () => {
   assert.match(app, /const resolucaoAltura = qtdAlt \* pixelsAltura/);
   assert.match(app, /resolucaoFinal = resolucaoLargura > 0 && resolucaoAltura > 0/);
   assert.match(app, /<strong>Resolução:<\/strong> \$\{resolucaoFinal\}/);
-  assert.match(app, /Resolução: \$\{dados\.resolucaoFinal\}/);
+  assert.match(app, /objetoResolucaoEl\.textContent = dados\.resolucaoFinal/);
   assert.match(app, /resolucaoFinal,\s+custoPainel/);
 });
 
 test('linha do objeto usa apresentação editorial na proposta', () => {
   const app = read('app.js');
   const proposta = read('proposta.html');
-  assert.match(app, /objetoTextParts\.join\('\s*·\s*'\)/);
   assert.match(proposta, /class="objeto-label"/);
-  assert.match(proposta, /class="objeto-value" id="objeto-proposta"/);
+  assert.match(proposta, /class="objeto-grid"/);
+  assert.match(proposta, /id="objeto-resolucao"/);
+  assert.match(proposta, /id="objeto-ambiente"/);
+  assert.match(proposta, /id="objeto-medida"/);
+  assert.match(proposta, /id="objeto-face"/);
+  assert.match(app, /getElementById\('objeto-resolucao'\)/);
 });
 
 test('catálogo central de controladoras contém os preços definidos', () => {
