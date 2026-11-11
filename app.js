@@ -466,22 +466,55 @@ function prepararCamposDeValorEditavel() {
 }
 
 function calcularMedidaFinal(larguraInput, alturaInput) {
-  if (!painelSelecionado) return { qtd: 0, medidaFinal: '0.00m x 0.00m', finalW: 0, finalH: 0 };
+  if (!painelSelecionado) return {
+    qtd: 0,
+    medidaFinal: '0.00m x 0.00m',
+    finalW: 0,
+    finalH: 0,
+    qtdLarg: 0,
+    qtdAlt: 0,
+    pixelsLargura: 0,
+    pixelsAltura: 0,
+    resolucaoLargura: 0,
+    resolucaoAltura: 0,
+    resolucaoFinal: ''
+  };
   const [modLarg, modAlt] = painelSelecionado.dimensao.split("x").map(Number);
-  let qtd, medidaFinal, finalW, finalH;
+  const pixelsLargura = Number(painelSelecionado.pixelsLargura) || 0;
+  const pixelsAltura = Number(painelSelecionado.pixelsAltura) || 0;
+  let qtd, medidaFinal, finalW, finalH, qtdLarg, qtdAlt;
   if (painelSelecionado.tipo === "gabinete") {
-    const qtdLarg = Math.floor(larguraInput / modLarg);
-    const qtdAlt = Math.floor(alturaInput / modAlt);
+    qtdLarg = Math.floor(larguraInput / modLarg);
+    qtdAlt = Math.floor(alturaInput / modAlt);
     qtd = qtdLarg * qtdAlt;
     finalW = qtdLarg * modLarg;
     finalH = qtdAlt * modAlt;
   } else {
-    finalW = Math.floor(larguraInput / modLarg) * modLarg;
-    finalH = Math.floor(alturaInput / modAlt) * modAlt;
+    qtdLarg = Math.floor(larguraInput / modLarg);
+    qtdAlt = Math.floor(alturaInput / modAlt);
+    finalW = qtdLarg * modLarg;
+    finalH = qtdAlt * modAlt;
     qtd = parseFloat((finalW * finalH).toFixed(4));
   }
   medidaFinal = `${finalW.toFixed(2)}m x ${finalH.toFixed(2)}m`;
-  return { qtd, medidaFinal, finalW, finalH };
+  const resolucaoLargura = qtdLarg * pixelsLargura;
+  const resolucaoAltura = qtdAlt * pixelsAltura;
+  const resolucaoFinal = resolucaoLargura > 0 && resolucaoAltura > 0
+    ? `${resolucaoLargura} × ${resolucaoAltura} pixels`
+    : '';
+  return {
+    qtd,
+    medidaFinal,
+    finalW,
+    finalH,
+    qtdLarg,
+    qtdAlt,
+    pixelsLargura,
+    pixelsAltura,
+    resolucaoLargura,
+    resolucaoAltura,
+    resolucaoFinal
+  };
 }
 
 function validarDimensoesMinimas(larguraInput, alturaInput) {
@@ -734,7 +767,19 @@ function calcularOrcamento(modulo) {
   if (!validarDimensoesMinimas(largura, altura)) return;
   const valorUnitario = parseFloat(document.getElementById("valorUnitario").value);
   if (isNaN(valorUnitario) || valorUnitario <= 0) { alert("Por favor, insira um valor unitário válido."); return; }
-  const { qtd, medidaFinal, finalW, finalH } = calcularMedidaFinal(largura, altura);
+  const {
+    qtd,
+    medidaFinal,
+    finalW,
+    finalH,
+    qtdLarg,
+    qtdAlt,
+    pixelsLargura,
+    pixelsAltura,
+    resolucaoLargura,
+    resolucaoAltura,
+    resolucaoFinal
+  } = calcularMedidaFinal(largura, altura);
   const selectControladora = document.getElementById("controladora");
   const optionSelecionadaCtrl = selectControladora.options[selectControladora.selectedIndex] || { dataset: { valor: 0 }, text: ''};
   const vendedorId = document.getElementById('selectVendedor').value;
@@ -925,6 +970,7 @@ const total = custoPainel + custoControladora + custoEstrutura + custoInstalacao
 
 ultimoResultado = { 
   total, totalSemAjuste: total, ajusteTotal: 0, medidaFinal, painel: painelSelecionado, qtd, valorUnitario,
+  qtdLarg, qtdAlt, pixelsLargura, pixelsAltura, resolucaoLargura, resolucaoAltura, resolucaoFinal,
   custoPainel, custoControladora, custoEstrutura, custoInstalacao,
   custoPilar, custoSapata, custoACM, totalACM, tipoEntrega, 
   isDuplaFace: (multiplicaPainel > 1), controladoraTexto: optionSelecionadaCtrl.text, 
@@ -942,6 +988,7 @@ if (tipoFace !== 'uma') {
 }
 
 resultadoHTML += `<li><strong>Painel:</strong> ${formatCurrency(custoPainel)} (${medidaFinal})</li>`;
+if (resolucaoFinal) resultadoHTML += `<li><strong>Resolução:</strong> ${resolucaoFinal}</li>`;
 if (custoEstrutura > 0) resultadoHTML += `<li><strong>Estrutura:</strong> ${formatCurrency(custoEstrutura)} (${quantidadeDeEstruturas * multiplicaEstrutura} × ${formatCurrency(estruturaUnitarioFinal)})</li>`;
 if (custoACM > 0) resultadoHTML += `<li><strong>Revestimento ACM (${totalACM.toFixed(2)} m²):</strong> ${formatCurrency(custoACM)}</li>`;
 if (custoBorda > 0) {
@@ -1222,6 +1269,7 @@ function preencherProposta() {
     const faceTexto = dados.isDuplaFace ? 'Dupla face' : 'Face única';
     const objetoTextParts = [];
     if (resolucao) objetoTextParts.push(resolucao);
+    if (dados.resolucaoFinal) objetoTextParts.push(`Resolução: ${dados.resolucaoFinal}`);
     if (ambiente) objetoTextParts.push(ambiente);
     if (medidaCm) objetoTextParts.push(medidaCm);
     objetoTextParts.push(faceTexto);

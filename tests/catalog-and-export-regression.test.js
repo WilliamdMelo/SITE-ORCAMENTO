@@ -2,9 +2,45 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const vm = require('node:vm');
 
 const root = path.join(__dirname, '..');
 const read = relativePath => fs.readFileSync(path.join(root, relativePath), 'utf8');
+
+test('catálogo de painéis contém a resolução técnica por unidade', () => {
+  const source = read('produtos.js').replace('const produtosPainel =', 'globalThis.produtosPainel =');
+  const context = {};
+  vm.runInNewContext(source, context);
+  const pixelsEsperados = new Map([
+    ['P2.97 Rental', [168, 336]],
+    ['P3.9 Rental', [128, 256]],
+    ['P4.81 Rental', [104, 104]],
+    ['P5 Magnésio', [192, 192]],
+    ['P2.5 GOB ACM', [128, 64]],
+    ['P1.86GOB ACM', [172, 86]],
+    ['P3 ACM', [106, 53]],
+    ['P4 ACM', [80, 40]],
+    ['P2.5 GOB IMÃ', [128, 64]],
+    ['P3 IMÃ Indoor', [106, 53]],
+  ]);
+  assert.equal(context.produtosPainel.length, pixelsEsperados.size);
+  for (const [nome, [largura, altura]] of pixelsEsperados) {
+    const produto = context.produtosPainel.find(item => item.nome === nome);
+    assert.ok(produto, `produto ausente: ${nome}`);
+    assert.equal(produto.pixelsLargura, largura);
+    assert.equal(produto.pixelsAltura, altura);
+  }
+});
+
+test('cálculo e exibição carregam a resolução efetiva do painel', () => {
+  const app = read('app.js');
+  assert.match(app, /const resolucaoLargura = qtdLarg \* pixelsLargura/);
+  assert.match(app, /const resolucaoAltura = qtdAlt \* pixelsAltura/);
+  assert.match(app, /resolucaoFinal = resolucaoLargura > 0 && resolucaoAltura > 0/);
+  assert.match(app, /<strong>Resolução:<\/strong> \$\{resolucaoFinal\}/);
+  assert.match(app, /Resolução: \$\{dados\.resolucaoFinal\}/);
+  assert.match(app, /resolucaoFinal,\s+custoPainel/);
+});
 
 test('catálogo central de controladoras contém os preços definidos', () => {
   const source = read('controladoras.js');
