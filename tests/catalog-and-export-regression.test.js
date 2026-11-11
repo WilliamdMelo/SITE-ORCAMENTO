@@ -3,9 +3,42 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 const vm = require('node:vm');
+const routeUtils = require('../route-utils');
 
 const root = path.join(__dirname, '..');
 const read = relativePath => fs.readFileSync(path.join(root, relativePath), 'utf8');
+
+test('normalização de rota converte distância e duração do Google', () => {
+  const result = routeUtils.normalizeRouteResponse({
+    routes: [{ distanceMeters: 123450, duration: '9900s' }],
+  });
+  assert.equal(result.distanceKm, 123.45);
+  assert.equal(result.durationHours, 2.75);
+  assert.equal(result.formattedDistance, '123,45 km');
+  assert.equal(result.formattedDuration, '2h45');
+  assert.throws(() => routeUtils.normalizeRouteResponse({ routes: [] }), /inválida/);
+});
+
+test('módulos possuem destino de rota e fallback manual', () => {
+  for (const modulo of ['fachada', 'totem', 'vitrine', 'parede']) {
+    const html = read(`${modulo}/${modulo}.html`);
+    assert.match(html, /id="destinoRotaEntrada"/);
+    assert.match(html, /id="calcularRota"/);
+    assert.match(html, /id="kmLocal"/);
+    assert.match(html, /id="tempoViagem"/);
+    assert.match(html, /route-utils\.js/);
+  }
+});
+
+test('rota usa Edge Function e não expõe chave do servidor', () => {
+  const app = read('app.js');
+  const edgeFunction = read('supabase/functions/calculate-route/index.ts');
+  assert.match(app, /functions\.invoke\('calculate-route'/);
+  assert.match(edgeFunction, /Deno\.env\.get\('GOOGLE_MAPS_SERVER_KEY'\)/);
+  assert.doesNotMatch(app, /GOOGLE_MAPS_SERVER_KEY|AIza[\w-]{20,}/);
+  assert.doesNotMatch(edgeFunction, /AIza[\w-]{20,}/);
+  assert.match(edgeFunction, /routingPreference: 'TRAFFIC_UNAWARE'/);
+});
 
 test('catálogo de painéis contém a resolução técnica por unidade', () => {
   const source = read('produtos.js').replace('const produtosPainel =', 'globalThis.produtosPainel =');

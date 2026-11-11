@@ -3,6 +3,7 @@
 
 # Ignora variáveis de ambiente
 .env
+maps-config.js
 
 # Ignora logs
 *.log

@@ -20,8 +20,138 @@ const vendedores = [
 
 let painelSelecionado = null;
 let ultimoResultado = null;
+let rotaDestinoSelecionada = null;
+let rotaRequestEmAndamento = false;
 
 const MODULOS_EM_SUBPASTA = ['fachada', 'totem', 'vitrine', 'parede'];
+
+function atualizarStatusRota(mensagem, tipo = 'info') {
+    const status = document.getElementById('statusRota');
+    if (!status) return;
+    status.textContent = mensagem;
+    status.className = `mt-2 text-sm ${tipo === 'success' ? 'text-green-700' : tipo === 'error' ? 'text-red-600' : 'text-gray-500'}`;
+}
+
+async function carregarAutocompleteRota() {
+    const container = document.getElementById('destinoRotaWidget');
+    const input = document.getElementById('destinoRotaEntrada');
+    if (!container || !input) return;
+
+    const browserKey = String(window.GOOGLE_MAPS_BROWSER_KEY || '').trim();
+    if (!browserKey) {
+        atualizarStatusRota('Autocomplete indisponível. Configure a chave do Google Maps ou preencha os quilômetros e horas manualmente.');
+        return;
+    }
+
+    try {
+        let mapsScript = document.getElementById('google-maps-js');
+        if (!mapsScript) {
+            mapsScript = document.createElement('script');
+            mapsScript.id = 'google-maps-js';
+            mapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(browserKey)}&v=weekly&loading=async`;
+            mapsScript.async = true;
+            mapsScript.defer = true;
+            document.head.appendChild(mapsScript);
+        }
+        await new Promise((resolve, reject) => {
+            if (window.google?.maps?.importLibrary) return resolve();
+            mapsScript.addEventListener('load', resolve, { once: true });
+            mapsScript.addEventListener('error', () => reject(new Error('Falha ao carregar o Google Maps.')), { once: true });
+        });
+
+        const { PlaceAutocompleteElement } = await window.google.maps.importLibrary('places');
+        const autocomplete = new PlaceAutocompleteElement();
+        autocomplete.includedRegionCodes = ['br'];
+        autocomplete.setAttribute('placeholder', input.placeholder || 'Cidade ou endereço');
+        autocomplete.className = 'flex-1';
+        input.replaceWith(autocomplete);
+
+        const destinoSalvo = document.getElementById('destinoRota')?.value?.trim();
+        const placeIdSalvo = document.getElementById('destinoPlaceId')?.value?.trim();
+        if (destinoSalvo) {
+            autocomplete.value = destinoSalvo;
+            rotaDestinoSelecionada = { address: destinoSalvo, placeId: placeIdSalvo || null };
+            atualizarStatusRota('Destino restaurado. Clique em “Calcular rota” para atualizar os valores.');
+        }
+
+        autocomplete.addEventListener('input', () => {
+            if (autocomplete.value === rotaDestinoSelecionada?.address) return;
+            rotaDestinoSelecionada = null;
+            document.getElementById('destinoRota').value = '';
+            document.getElementById('destinoPlaceId').value = '';
+        });
+
+        autocomplete.addEventListener('gmp-select', async ({ placePrediction }) => {
+            try {
+                const place = placePrediction.toPlace();
+                await place.fetchFields({ fields: ['formattedAddress', 'id'] });
+                const address = String(place.formattedAddress || '').trim();
+                if (!address) throw new Error('O endereço selecionado não possui uma descrição válida.');
+                rotaDestinoSelecionada = { address, placeId: place.id || null };
+                document.getElementById('destinoRota').value = address;
+                document.getElementById('destinoPlaceId').value = place.id || '';
+                autocomplete.value = address;
+                atualizarStatusRota('Destino selecionado. Clique em “Calcular rota”.');
+            } catch (error) {
+                rotaDestinoSelecionada = null;
+                atualizarStatusRota(error.message || 'Não foi possível selecionar esse destino.', 'error');
+            }
+        });
+    } catch (error) {
+        atualizarStatusRota(`${error.message || 'Google Maps indisponível'} Use o preenchimento manual.`, 'error');
+    }
+}
+
+async function calcularRotaDestino() {
+    const button = document.getElementById('calcularRota');
+    if (!button || rotaRequestEmAndamento) return;
+    if (!rotaDestinoSelecionada?.address) {
+        atualizarStatusRota('Selecione um endereço nas sugestões do Google antes de calcular a rota.', 'error');
+        return;
+    }
+
+    rotaRequestEmAndamento = true;
+    button.disabled = true;
+    const textoOriginal = button.textContent;
+    button.textContent = 'Calculando...';
+    atualizarStatusRota('Consultando a rota até o local...');
+    try {
+        const { data, error } = await getSupabaseClient().functions.invoke('calculate-route', {
+            body: { destination: rotaDestinoSelecionada },
+        });
+        if (error) throw error;
+        if (!data || !Number.isFinite(Number(data.distanceKm)) || !Number.isFinite(Number(data.durationHours))) {
+            throw new Error('A resposta da rota não trouxe distância e duração válidas.');
+        }
+
+        const kmInput = document.getElementById('kmLocal');
+        const tempoInput = document.getElementById('tempoViagem');
+        if (kmInput) kmInput.value = Number(data.distanceKm).toFixed(2);
+        if (tempoInput) tempoInput.value = Number(data.durationHours).toFixed(2);
+        atualizarStatusRota(`Rota preenchida: ${data.formattedDistance || `${data.distanceKm} km`} · ${data.formattedDuration || `${data.durationHours} h`}.`, 'success');
+    } catch (error) {
+        atualizarStatusRota(error.message || 'Não foi possível calcular a rota. Os valores manuais foram preservados.', 'error');
+    } finally {
+        rotaRequestEmAndamento = false;
+        button.disabled = false;
+        button.textContent = textoOriginal || 'Calcular rota';
+    }
+}
+
+function configurarRotaDestino() {
+    const input = document.getElementById('destinoRotaEntrada');
+    const button = document.getElementById('calcularRota');
+    if (!input || !button) return;
+    input.addEventListener('input', () => {
+        rotaDestinoSelecionada = null;
+        const hiddenAddress = document.getElementById('destinoRota');
+        const hiddenPlaceId = document.getElementById('destinoPlaceId');
+        if (hiddenAddress) hiddenAddress.value = '';
+        if (hiddenPlaceId) hiddenPlaceId.value = '';
+    });
+    button.addEventListener('click', calcularRotaDestino);
+    carregarAutocompleteRota();
+}
 
 function obterParametrosAuthUrl() {
     const queryParams = new URLSearchParams(window.location.search);
@@ -1646,6 +1776,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }, 200);
       }
       const form = document.getElementById('orcamento-form');
+          configurarRotaDestino();
       const selectModelo = document.getElementById('modeloPainel');
       if (selectModelo) selectModelo.addEventListener('change', atualizarPainelSelecionado);
       if (moduloAtual === 'totem') {
