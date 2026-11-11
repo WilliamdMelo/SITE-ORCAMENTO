@@ -1273,7 +1273,7 @@ function preencherProposta() {
     if (ambiente) objetoTextParts.push(ambiente);
     if (medidaCm) objetoTextParts.push(medidaCm);
     objetoTextParts.push(faceTexto);
-    const objetoFinal = `Painel LED ${objetoTextParts.join(' ')}`.trim();
+    const objetoFinal = `Painel LED ${objetoTextParts.join(' · ')}`.trim();
     const objetoEl = document.getElementById('objeto-proposta');
     if (objetoEl) objetoEl.textContent = objetoFinal;
 

@@ -77,7 +77,34 @@
     .cliente-info { margin: 0 0 20px 0; font-size: 11pt; }
     .section { margin: 20px 0; }
     .section-title { font-size: 11pt; font-weight: 700; color: var(--blue); margin: 0 0 8px 0; }
-    .objeto { margin: 20px 0; font-size: 11pt; }
+    .objeto {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      margin: 18px 0 20px;
+      font-size: 10.5pt;
+    }
+    .objeto-label {
+      color: var(--blue);
+      font-size: 8.5pt;
+      font-weight: 800;
+      letter-spacing: .08em;
+      line-height: 1.5;
+      text-transform: uppercase;
+      padding-top: 7px;
+    }
+    .objeto-value {
+      display: block;
+      min-width: 0;
+      padding: 7px 11px 8px;
+      border-left: 3px solid var(--blue);
+      border-radius: 0 5px 5px 0;
+      background: #f5f8fb;
+      color: var(--text-color);
+      font-weight: 600;
+      line-height: 1.45;
+    }
     .item-list { list-style: none; padding: 0; margin: 8px 0; }
     .item-list li { display: flex; align-items: baseline; margin: 4px 0; font-size: 11pt; }
     .item-list li::before { content: "✓"; margin-right: 8px; font-weight: bold; flex-shrink: 0; }
@@ -163,7 +190,8 @@
       </div>
 
       <div class="objeto">
-        <strong>Objeto:</strong> <span id="objeto-proposta">Painel de LED outdoor P5.0mm outdoor 288x480cm Dupla face</span>
+        <strong class="objeto-label">Objeto</strong>
+        <span class="objeto-value" id="objeto-proposta">Painel de LED outdoor P5.0mm · 288x480cm · Dupla face</span>
       </div>
 
       <div class="section">

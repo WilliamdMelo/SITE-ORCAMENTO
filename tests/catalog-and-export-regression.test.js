@@ -42,6 +42,14 @@ test('cálculo e exibição carregam a resolução efetiva do painel', () => {
   assert.match(app, /resolucaoFinal,\s+custoPainel/);
 });
 
+test('linha do objeto usa apresentação editorial na proposta', () => {
+  const app = read('app.js');
+  const proposta = read('proposta.html');
+  assert.match(app, /objetoTextParts\.join\('\s*·\s*'\)/);
+  assert.match(proposta, /class="objeto-label"/);
+  assert.match(proposta, /class="objeto-value" id="objeto-proposta"/);
+});
+
 test('catálogo central de controladoras contém os preços definidos', () => {
   const source = read('controladoras.js');
   for (const [value, price] of [
