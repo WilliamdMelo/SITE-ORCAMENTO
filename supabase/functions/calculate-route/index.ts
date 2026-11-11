@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import '../../../route-utils.js';
+import './route-utils.js';
 
 declare global {
   var routeUtils: {
