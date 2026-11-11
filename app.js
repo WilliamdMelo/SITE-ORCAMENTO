@@ -1623,10 +1623,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       let abrirPropostaAtual = null;
       if (form) {
-      form.addEventListener('submit', async (event) => {
+      form.addEventListener('submit', (event) => {
       event.preventDefault();
       calcularOrcamento(moduloAtual);
-      if (ultimoResultado && abrirPropostaAtual) await abrirPropostaAtual(true);
       });
       const formInputs = form.querySelectorAll('input, select');
       formInputs.forEach(input => input.addEventListener('change', hideResultOnInputChange));
@@ -1696,7 +1695,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       alert(error.message || 'Falha ao salvar a proposta.');
       }
       };
-      btnGerarProposta.addEventListener('click', () => abrirPropostaAtual(false));
+      btnGerarProposta.addEventListener('click', () => abrirPropostaAtual(true));
       }
       }
     }

@@ -62,9 +62,10 @@ test('formulário limita a largura dos menus em telas grandes', () => {
   assert.match(css, /#orcamento-form select\s*\{[\s\S]*max-width:\s*100%/);
 });
 
-test('cálculo abre a proposta em nova aba e preserva a página atual', () => {
+test('gerar proposta abre a proposta em nova aba e calcular permanece no orçamento', () => {
   const app = read('app.js');
   assert.match(app, /window\.open\('about:blank', '_blank'\)/);
   assert.match(app, /janelaProposta\.location\.href = caminhoProposta/);
-  assert.match(app, /if \(!abrirNovaAba\) \{\s*window\.location\.href = caminhoProposta/);
+  assert.match(app, /form\.addEventListener\('submit', \(event\) => \{\s*event\.preventDefault\(\);\s*calcularOrcamento\(moduloAtual\);\s*\}\);/);
+  assert.match(app, /btnGerarProposta\.addEventListener\('click', \(\) => abrirPropostaAtual\(true\)\)/);
 });
