@@ -75,8 +75,18 @@
     h1 { margin: 0 0 8px 0; font-size: 20pt; line-height: 1.2; color: var(--text-color); font-weight: 700; }
     #titulo-proposta { display: block; font-size: 20pt !important; line-height: 1.2 !important; font-weight: 700 !important; color: var(--text-color) !important; letter-spacing: 0; }
     .cliente-info { margin: 0 0 20px 0; font-size: 11pt; }
-    .section { margin: 20px 0; }
-    .section-title { font-size: 11pt; font-weight: 700; color: var(--blue); margin: 0 0 8px 0; }
+    .section { margin: 16px 0; }
+    .section-title {
+      margin: 0;
+      padding: 7px 10px;
+      border-left: 3px solid var(--blue);
+      border-bottom: 1px solid #dbe4ec;
+      background: #f5f8fb;
+      color: var(--blue);
+      font-size: 9.5pt;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
     .objeto {
       display: block;
       margin: 18px 0 20px;
@@ -137,33 +147,65 @@
       .objeto-field:first-child { grid-column: 1 / -1; }
     }
     .item-list { list-style: none; padding: 0; margin: 8px 0; }
-    .item-list li { display: flex; align-items: baseline; margin: 4px 0; font-size: 11pt; }
+    .item-list li { display: flex; align-items: baseline; margin: 4px 0; font-size: 10.5pt; }
     .item-list li::before { content: "✓"; margin-right: 8px; font-weight: bold; flex-shrink: 0; }
     .item-content { flex: 1; display: flex; align-items: baseline; gap: 8px; }
     .item-description { flex: 0 1 auto; }
     .item-dots { flex: 1 1 auto; border-bottom: 1px dotted #666; height: 0; transform: translateY(-2px); }
-    .price { margin-left: auto; font-weight: 700; white-space: nowrap; text-align: right; }
+    .price { margin-left: auto; font-weight: 750; white-space: nowrap; text-align: right; color: #172b3d; }
     body.ocultar-valores-itens #tabela-equipamentos .price,
     body.ocultar-valores-itens #lista-instalacao .price,
     body.ocultar-valores-itens #tabela-equipamentos .dots,
     body.ocultar-valores-itens #lista-instalacao .dots,
     body.ocultar-valores-itens .subtotal { display: none; }
+    body.ocultar-valores-itens #tabela-equipamentos .line-item,
+    body.ocultar-valores-itens #lista-instalacao .line-item { grid-template-columns: minmax(0, 1fr); }
     .dotted-line { display: flex; align-items: baseline; margin: 8px 0; font-size: 11pt; }
     .dotted-line .label { flex: 0 0 auto; font-weight: 700; }
     .dotted-line .dots { flex: 1; border-bottom: 1px dotted #666; margin: 0 8px; height: 0; transform: translateY(-2px); }
-    .line-item { display: flex; align-items: baseline; width: 100%; }
+    .line-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: baseline; width: 100%; }
+    #tabela-equipamentos,
+    #lista-instalacao {
+      overflow: hidden;
+      border: 1px solid #dbe4ec;
+      border-top: 0;
+      border-radius: 0 0 5px 5px;
+    }
+    #tabela-equipamentos .line-item,
+    #lista-instalacao .line-item {
+      box-sizing: border-box;
+      min-height: 29px;
+      margin: 0;
+      padding: 6px 10px;
+      background: #fff;
+    }
+    #tabela-equipamentos .line-item + .line-item,
+    #lista-instalacao .line-item + .line-item { border-top: 1px solid #edf1f4; }
+    #tabela-equipamentos .line-item:nth-child(even),
+    #lista-instalacao .line-item:nth-child(even) { background: #fbfcfd; }
+    #tabela-equipamentos .label,
+    #lista-instalacao .label { min-width: 0; line-height: 1.35; }
+    #tabela-equipamentos .dots,
+    #lista-instalacao .dots { display: none; }
     .dotted-line .value { margin-left: auto; font-weight: 700; white-space: nowrap; text-align: right; }
-    .subtotal { margin: 12px 0; padding: 8px 0; border-top: 1px solid #ddd; }
-    .total { margin: 16px 0; padding: 8px 0; border-top: 2px solid #333; font-size: 12pt; font-weight: 700; }
+    .subtotal { margin: 0; padding: 8px 10px; border: 1px solid #dbe4ec; border-top: 0; background: #f8fafc; }
+    .total { margin: 14px 0; padding: 10px; border: 1px solid #b9cddd; border-top: 3px solid var(--blue); border-radius: 5px; background: #f5f8fb; font-size: 12pt; font-weight: 800; }
     .non-included { margin: 16px 0 0; }
-    .non-included .item-list { margin-top: 8px; }
-    .payment-conditions { margin: 20px 0; }
-    .payment-conditions ul { list-style: disc; padding-left: 20px; margin: 8px 0; }
-    .payment-conditions li { margin: 4px 0; font-size: 11pt; }
+    .non-included .item-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-top: 0; padding: 8px; border: 1px solid #dbe4ec; border-top: 0; }
+    .non-included .item-list li { margin: 0; padding: 6px 8px; border: 1px solid #edf1f4; background: #fff; }
+    .payment-conditions { margin: 16px 0; }
+    .payment-conditions ul { list-style: none; padding: 0; margin: 0; border: 1px solid #dbe4ec; border-top: 0; }
+    .payment-conditions li { margin: 0; padding: 7px 10px; border-top: 1px solid #edf1f4; font-size: 10.5pt; line-height: 1.35; }
+    .payment-conditions li:first-child { border-top: 0; }
+    .locacao-table { width: 100%; border: 1px solid #dbe4ec; border-top: 0; border-collapse: separate; border-spacing: 0; font-size: 10.5pt; }
+    .locacao-table th { padding: 7px 10px; background: #f5f8fb; color: #536678; font-size: 8.5pt; letter-spacing: .05em; text-align: left; text-transform: uppercase; }
+    .locacao-table td { padding: 6px 10px; border-top: 1px solid #edf1f4; }
+    .locacao-table td:last-child { font-weight: 750; text-align: right; }
+    .locacao-table tr:nth-child(even) td { background: #fbfcfd; }
     .additional-info { margin: 20px 0; font-size: 11pt; }
     .proposal-observation { margin: 8px 0 0; white-space: pre-wrap; word-break: break-word; line-height: 1.45; }
-    .responsible-info { margin-top: 30px; }
-    .date-location { margin-top: 20px; font-size: 11pt; }
+    .responsible-info { margin-top: 24px; padding-top: 12px; border-top: 1px solid #dbe4ec; }
+    .date-location { margin-top: 16px; padding-top: 10px; border-top: 1px solid #edf1f4; font-size: 10.5pt; color: #536678; }
     .technical-details { font-size: 9pt; color: var(--muted); margin-left: 20px; font-style: italic; }
     .proposal-logo { position: absolute; top: 16mm; right: 18mm; width: 34mm; height: auto; object-fit: contain; }
     /* Reserva espaço para o logotipo no cabeçalho da página de informações. */
@@ -288,11 +330,11 @@
 
       <div class="payment-conditions" id="condicoes-locacao" style="margin-top: 12px;">
         <div class="section-title">Condição de pagamento (Locação):</div>
-        <table style="width:100%; font-size:11pt; border-collapse: collapse;">
+        <table class="locacao-table">
           <thead>
-            <tr style="border-bottom: 1px solid #ccc;">
-              <th style="text-align:left;">Prazo</th>
-              <th style="text-align:left;">Parcela mensal</th>
+            <tr>
+              <th>Prazo</th>
+              <th>Parcela mensal</th>
             </tr>
           </thead>
           <tbody id="tabelaLocacaoProposta"></tbody>
