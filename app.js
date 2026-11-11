@@ -1621,27 +1621,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         bordaOptions.style.display = incluirBorda.checked ? 'block' : 'none';
       }
 
+      let abrirPropostaAtual = null;
       if (form) {
-      form.addEventListener('submit', (event) => {
+      form.addEventListener('submit', async (event) => {
       event.preventDefault();
       calcularOrcamento(moduloAtual);
+      if (ultimoResultado && abrirPropostaAtual) await abrirPropostaAtual(true);
       });
       const formInputs = form.querySelectorAll('input, select');
       formInputs.forEach(input => input.addEventListener('change', hideResultOnInputChange));
       const btnGerarProposta = document.getElementById('btnGerarProposta');
       if (btnGerarProposta) {
       configurarOpcoesProposta();
-      btnGerarProposta.addEventListener('click', async () => {
+      abrirPropostaAtual = async (abrirNovaAba = false) => {
       if (!ultimoResultado) {
       alert("Calcule um orçamento antes de gerar a proposta.");
       return;
       }
 
+      const caminhoProposta = MODULOS_EM_SUBPASTA.includes(moduloAtual) ? '../proposta.html' : 'proposta.html';
+      const janelaProposta = abrirNovaAba ? window.open('about:blank', '_blank') : null;
+
       try {
       const activeSession = await obterSessaoAtual();
       if (!activeSession) {
+      janelaProposta?.close();
       alert("Sessão expirada. Por favor, faça login novamente.");
-      redirecionarParaLogin(moduloAtual);
+      if (!abrirNovaAba) redirecionarParaLogin(moduloAtual);
       return;
       }
 
@@ -1678,11 +1684,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (error) throw error;
 
       localStorage.setItem('dadosProposta', JSON.stringify(dadosProposta));
-      window.location.href = MODULOS_EM_SUBPASTA.includes(moduloAtual) ? '../proposta.html' : 'proposta.html';
+      if (janelaProposta && !janelaProposta.closed) {
+        janelaProposta.location.href = caminhoProposta;
+      } else if (!abrirNovaAba) {
+        window.location.href = caminhoProposta;
+      } else {
+        alert('O navegador bloqueou a nova aba. Permita pop-ups para abrir a proposta automaticamente.');
+      }
       } catch (error) {
+      janelaProposta?.close();
       alert(error.message || 'Falha ao salvar a proposta.');
       }
-      });
+      };
+      btnGerarProposta.addEventListener('click', () => abrirPropostaAtual(false));
       }
       }
     }
